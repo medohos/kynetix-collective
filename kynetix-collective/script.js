@@ -2,12 +2,18 @@
   const $ = (s) => document.querySelector(s);
   const $$ = (s) => document.querySelectorAll(s);
 
+  // Detect static hosting (e.g. GitHub Pages) where no local Node.js backend is running
+  const IS_STATIC_HOST = /\.github\.io$/i.test(window.location.hostname);
+
   // Backend API URL (auto-detects if running via Node server port 3000 or XAMPP Apache port 80 across all devices)
   const API_BASE = window.location.port === '3000'
     ? '/api'
     : `${window.location.protocol}//${window.location.hostname}:3000/api`;
 
   async function apiFetch(endpoint, options = {}) {
+    if (IS_STATIC_HOST) {
+      return { ok: false, data: null, error: 'Running in static demo mode', networkError: true };
+    }
     try {
       const res = await fetch(`${API_BASE}${endpoint}`, {
         ...options,

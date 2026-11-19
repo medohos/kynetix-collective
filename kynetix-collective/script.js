@@ -2,25 +2,39 @@
   const $ = (s) => document.querySelector(s);
   const $$ = (s) => document.querySelectorAll(s);
 
-  // Detect static hosting (e.g. GitHub Pages) where no local Node.js backend is running
+  // Production Express + TiDB Cloud API hosted on Vercel (used by GitHub Pages too via CORS)
+  const PROD_API_URL = 'https://kynetix-collective.vercel.app/api';
   const IS_STATIC_HOST = /\.github\.io$/i.test(window.location.hostname);
   const IS_LOCAL_HOST = /^(localhost|127\.0\.0\.1|192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.)/i.test(window.location.hostname);
 
-  // Backend API URL: same-origin '/api' on Node (port 3000) or cloud hosts (Render/Railway),
-  // or ':3000/api' when accessed locally via XAMPP Apache on port 80
-  const API_BASE = (!IS_LOCAL_HOST || window.location.port === '3000')
-    ? '/api'
-    : `${window.location.protocol}//${window.location.hostname}:3000/api`;
+  // Backend API URL:
+  // - GitHub Pages (*.github.io) -> live Vercel API (with CORS)
+  // - Vercel / cloud hosts / local Node (port 3000) -> same-origin '/api'
+  // - Local XAMPP Apache (port 80/443) -> ':3000/api'
+  const API_BASE = IS_STATIC_HOST
+    ? PROD_API_URL
+    : (!IS_LOCAL_HOST || window.location.port === '3000')
+      ? '/api'
+      : `${window.location.protocol}//${window.location.hostname}:3000/api`;
+
+  function getAuthToken() {
+    try {
+      const u = JSON.parse(localStorage.getItem('kynetixUser'));
+      return u && u.loggedIn && u.token ? u.token : null;
+    } catch (e) {
+      return null;
+    }
+  }
 
   async function apiFetch(endpoint, options = {}) {
-    if (IS_STATIC_HOST) {
-      return { ok: false, data: null, error: 'Running in static demo mode', networkError: true };
-    }
     try {
+      const token = getAuthToken();
+      const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
       const res = await fetch(`${API_BASE}${endpoint}`, {
         ...options,
         headers: {
           'Content-Type': 'application/json',
+          ...authHeaders,
           ...(options.headers || {})
         }
       });
@@ -1380,13 +1394,36 @@
     return wishlist.some((w) => w.productId === productId);
   }
 
+  async function syncWishlistFromDB() {
+    if (!getAuthToken()) return;
+    const res = await apiFetch('/wishlist');
+    if (res.ok && res.data && Array.isArray(res.data.data)) {
+      wishlist = res.data.data.map((w) => ({
+        productId: w.productId,
+        name: w.name,
+        brand: w.brand,
+        price: Number(w.price),
+        img: w.img || '',
+        addedAt: w.addedAt ? new Date(w.addedAt).getTime() : Date.now()
+      }));
+      saveWishlist();
+      updateWishlistCount();
+      renderWishlistDrawer();
+      updateWishlistButtons();
+    }
+  }
+
   function toggleWishlist(productId) {
     const products = getProducts();
     const p = products[productId];
     if (!p) return;
-    if (isWishlisted(productId)) {
+    const removing = isWishlisted(productId);
+    if (removing) {
       wishlist = wishlist.filter((w) => w.productId !== productId);
       showToast('Removed from wishlist');
+      if (getAuthToken()) {
+        apiFetch(`/wishlist/${encodeURIComponent(productId)}`, { method: 'DELETE' });
+      }
     } else {
       wishlist.push({
         productId,
@@ -1397,6 +1434,9 @@
         addedAt: Date.now()
       });
       showToast(`${p.name} saved to wishlist`);
+      if (getAuthToken()) {
+        apiFetch('/wishlist', { method: 'POST', body: JSON.stringify({ productId }) });
+      }
     }
     saveWishlist();
     updateWishlistCount();
@@ -1491,6 +1531,9 @@
           updateWishlistCount();
           renderWishlistDrawer();
           updateWishlistButtons();
+          if (getAuthToken()) {
+            apiFetch(`/wishlist/${encodeURIComponent(moveId)}`, { method: 'DELETE' });
+          }
         }
         return;
       }
@@ -1501,6 +1544,9 @@
         updateWishlistCount();
         renderWishlistDrawer();
         updateWishlistButtons();
+        if (getAuthToken()) {
+          apiFetch(`/wishlist/${encodeURIComponent(rmId)}`, { method: 'DELETE' });
+        }
       }
     });
   }
@@ -1624,18 +1670,30 @@
         adminBadge.remove();
       }
 
-      const orders = [];
-      try { orders.push(...(JSON.parse(localStorage.getItem('kynetixOrders')) || [])); } catch(e) {}
-      const ordersWrap = $('#userDashOrders');
-      if (ordersWrap) {
-        ordersWrap.innerHTML = orders.length
-          ? orders.slice(0, 5).map((o) => `
+      const renderDashOrders = (list) => {
+        const ordersWrap = $('#userDashOrders');
+        if (!ordersWrap) return;
+        ordersWrap.innerHTML = list.length
+          ? list.slice(0, 5).map((o) => `
               <div class="dash-order-card">
                 <strong>${o.orderId}</strong>
                 <span>${o.orderDate}</span>
                 <a href="track.html?order=${o.orderId}">Track</a>
               </div>`).join('')
           : '<p style="font-size:13px;color:var(--grey-600);">No orders yet.</p>';
+      };
+
+      const localOrders = [];
+      try { localOrders.push(...(JSON.parse(localStorage.getItem('kynetixOrders')) || [])); } catch(e) {}
+      renderDashOrders(localOrders);
+
+      if (user.token) {
+        apiFetch('/orders/my-orders').then((res) => {
+          if (res.ok && res.data && Array.isArray(res.data.data) && res.data.data.length) {
+            renderDashOrders(res.data.data);
+          }
+        });
+        syncWishlistFromDB();
       }
     } else {
       if (guestView) guestView.hidden = false;
@@ -2284,6 +2342,44 @@
       });
     }
 
+    // Load persisted reviews from MySQL backend
+    async function loadProductReviews() {
+      const reviewsFeed = $('#reviewsFeed');
+      if (!reviewsFeed) return;
+      const res = await apiFetch(`/reviews/${encodeURIComponent(prodId)}`);
+      if (res.ok && res.data && Array.isArray(res.data.data) && res.data.data.length) {
+        const list = res.data.data;
+        reviewsFeed.innerHTML = list.map((rev) => {
+          const rStars = '\u2605'.repeat(rev.rating) + '\u2606'.repeat(5 - rev.rating);
+          return `
+            <div class="review-card">
+              <div class="review-card__header">
+                <strong>${rev.author}</strong>
+                <span class="review-stars">${rStars}</span>
+              </div>
+              <p class="review-text">"${rev.comment}"</p>
+              <span class="review-date">${rev.isVerified ? 'Verified Purchase \u2022 ' : ''}${rev.date || ''}</span>
+            </div>
+          `;
+        }).join('');
+        const avg = (list.reduce((s, r) => s + Number(r.rating || 5), 0) / list.length).toFixed(1);
+        if ($('#avgRatingHeader')) $('#avgRatingHeader').textContent = `${avg} (${list.length} ${list.length === 1 ? 'review' : 'reviews'})`;
+      }
+    }
+    loadProductReviews();
+
+    // Refresh variant stock when live database catalog finishes syncing
+    window.addEventListener('kynetix:catalog-synced', (ev) => {
+      const synced = ev.detail || getProducts();
+      const updated = synced[prodId];
+      if (updated) {
+        product.price = updated.price;
+        product.variantStock = updated.variantStock || product.variantStock;
+        if ($('#prodPrice')) $('#prodPrice').textContent = formatEGP(product.price);
+        if (typeof updateVariantAvailabilityUI === 'function') updateVariantAvailabilityUI();
+      }
+    });
+
     // Recommended Gear Grid
     const recommendedGrid = $('#recommendedGrid');
     if (recommendedGrid) {
@@ -2821,22 +2917,43 @@
     const appliedCodeName = $('#appliedCodeName');
 
     if (applyPromoBtn && promoInput) {
-      applyPromoBtn.addEventListener('click', () => {
+      applyPromoBtn.addEventListener('click', async () => {
         const code = promoInput.value.trim().toUpperCase();
         if (!code) {
           if (promoMessage) { promoMessage.textContent = 'Please enter a promo code'; promoMessage.className = 'promo-feedback is-error'; }
           return;
         }
-        if (COUPONS[code]) {
-          appliedCoupon = { code, ...COUPONS[code] };
-          if (promoMessage) { promoMessage.textContent = `Coupon "${code}" applied successfully!`; promoMessage.className = 'promo-feedback is-success'; }
-          if (appliedCodeName) appliedCodeName.textContent = code;
+
+        const currentSubtotal = bag.reduce((sum, item) => sum + (item.qty * item.price), 0);
+        const apiRes = await apiFetch('/coupons/validate', {
+          method: 'POST',
+          body: JSON.stringify({ code, subtotal: currentSubtotal })
+        });
+
+        let matched = null;
+        if (apiRes.ok && apiRes.data && apiRes.data.coupon) {
+          const c = apiRes.data.coupon;
+          matched = {
+            code: c.code,
+            label: c.label,
+            discountPercent: c.discountType === 'percentage' ? Number(c.discountValue) : 0,
+            fixedDiscount: c.discountType === 'fixed' ? Number(c.discountValue) : 0,
+            freeShipping: !!c.freeShipping
+          };
+        } else if (apiRes.networkError && COUPONS[code]) {
+          matched = { code, ...COUPONS[code] };
+        }
+
+        if (matched) {
+          appliedCoupon = matched;
+          if (promoMessage) { promoMessage.textContent = `Coupon "${matched.code}" applied successfully!`; promoMessage.className = 'promo-feedback is-success'; }
+          if (appliedCodeName) appliedCodeName.textContent = matched.code;
           if (promoAppliedTag) promoAppliedTag.hidden = false;
           promoInput.value = '';
           renderCheckoutSummary();
-          showToast(`Coupon ${code} applied!`);
+          showToast(`Coupon ${matched.code} applied!`);
         } else {
-          if (promoMessage) { promoMessage.textContent = 'Invalid promo code. Try "KYNETIX10" for 10% off.'; promoMessage.className = 'promo-feedback is-error'; }
+          if (promoMessage) { promoMessage.textContent = apiRes.error || 'Invalid promo code. Try "KYNETIX10" for 10% off.'; promoMessage.className = 'promo-feedback is-error'; }
         }
       });
     }

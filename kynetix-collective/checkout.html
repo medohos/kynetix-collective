@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout | Kynetix Collective</title>
+  <meta name="description" content="Official checkout for Kynetix Collective. High-performance athletic gear with fast nationwide dispatch across Egypt.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,400;0,500;0,600;0,700;1,700;1,800;1,900&family=Barlow+Condensed:ital,wght@1,700;1,800;1,900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="checkout-body">
+
+  <div class="announce">Free shipping on orders over 1000 EGP &nbsp;|&nbsp; 14-Day Free Returns & Exchanges</div>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header__inner">
+
+      <button class="icon-btn menu-toggle" id="menuToggle" aria-label="Open menu" aria-expanded="false">
+        <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+
+      <a href="index.html" class="logo" aria-label="Kynetix Collective home">
+        <img src="images/logo.png" alt="Kynetix Collective" id="logoImg">
+        <span class="logo__fallback" id="logoFallback" hidden>
+          <strong>KYNETIX</strong><small>COLLECTIVE</small>
+        </span>
+      </a>
+
+      <nav class="nav" id="nav" aria-label="Main">
+        <div class="nav-item">
+          <a href="shop.html?category=Men">Men</a>
+          <div class="dropdown">
+            <a href="shop.html?category=Men&sub=Shoes">Shoes</a>
+            <a href="shop.html?category=Men&sub=Tops">Tops & T-Shirts</a>
+            <a href="shop.html?category=Men&sub=Hoodies">Hoodies & Jackets</a>
+            <a href="shop.html?category=Men&sub=Pants">Pants & Shorts</a>
+          </div>
+        </div>
+
+        <div class="nav-item">
+          <a href="shop.html?category=Women">Women</a>
+          <div class="dropdown">
+            <a href="shop.html?category=Women&sub=Shoes">Shoes</a>
+            <a href="shop.html?category=Women&sub=Tops">Tops & Sports Bras</a>
+            <a href="shop.html?category=Women&sub=Leggings">Leggings & Shorts</a>
+            <a href="shop.html?category=Women&sub=Hoodies">Hoodies & Jackets</a>
+          </div>
+        </div>
+
+        <div class="nav-item">
+          <a href="shop.html?category=Kids">Kids</a>
+          <div class="dropdown">
+            <a href="shop.html?category=Kids&sub=Shoes">Shoes</a>
+            <a href="shop.html?category=Kids&sub=Boys">Boys Clothing</a>
+            <a href="shop.html?category=Kids&sub=Girls">Girls Clothing</a>
+          </div>
+        </div>
+
+        <div class="nav-item">
+          <a href="shop.html?category=Accessories">Accessories</a>
+          <div class="dropdown">
+            <a href="shop.html?category=Accessories&sub=Bags">Bags & Backpacks</a>
+            <a href="shop.html?category=Accessories&sub=Hats">Hats & Caps</a>
+            <a href="shop.html?category=Accessories&sub=Socks">Socks & Gear</a>
+          </div>
+        </div>
+
+        <div class="nav-item">
+          <a href="shop.html">Brands</a>
+          <div class="dropdown">
+            <a href="shop.html?brand=Nike">Nike</a>
+            <a href="shop.html?brand=Adidas">Adidas</a>
+            <a href="shop.html?brand=Puma">Puma</a>
+            <a href="shop.html?brand=Reebok">Reebok</a>
+            <a href="shop.html?brand=Under Armour">Under Armour</a>
+          </div>
+        </div>
+      </nav>
+
+      <form class="search" role="search" id="searchForm">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input type="search" id="searchInput" placeholder="Search shoes, apparel, brands..." aria-label="Search">
+      </form>
+
+      <div class="actions">
+        <button class="icon-btn" id="accountBtn" aria-label="Sign in or log in">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+        </button>
+        <button class="icon-btn bag-btn" id="bagBtn" aria-label="Open shopping bag">
+          <svg viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6L5 8z"/><path d="M9 8V6a3 3 0 016 0v2"/></svg>
+          <span class="bag-count" id="bagCount">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- CHECKOUT PAGE WRAPPER -->
+  <main class="section checkout-page" id="checkoutPage">
+
+    <!-- TOP BAR / BREADCRUMBS -->
+    <div class="checkout-top-strip">
+      <nav class="checkout-breadcrumbs" aria-label="Breadcrumb">
+        <a href="index.html">Home</a>
+        <span class="sep">/</span>
+        <a href="shop.html">Shop</a>
+        <span class="sep">/</span>
+        <button type="button" class="crumb-link" id="crumbOpenBag">Bag</button>
+        <span class="sep">/</span>
+        <span class="crumb-current">Checkout</span>
+      </nav>
+    </div>
+
+    <!-- MAIN CHECKOUT CONTENT -->
+    <div class="checkout-container" id="checkoutContent">
+      <div class="section__head checkout-head">
+        <div>
+          <p class="eyebrow" style="color:var(--grey-600); margin-bottom: 6px;">KYNETIX ATHLETIC FULFILLMENT</p>
+          <h2>Order Checkout</h2>
+        </div>
+        <span class="line"></span>
+        <span class="checkout-security-tag">
+          <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="0" ry="0"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+          Encrypted 256-Bit
+        </span>
+      </div>
+
+      <div class="checkout-layout">
+
+        <!-- LEFT COLUMN: EDITORIAL FORM -->
+        <div class="checkout-main">
+          <form id="checkoutForm" novalidate autocomplete="on">
+
+            <!-- 01: CONTACT INFORMATION -->
+            <section class="checkout-block">
+              <div class="checkout-block__header">
+                <div class="block-tag">01</div>
+                <h3>Contact &amp; Courier Updates</h3>
+              </div>
+              <div class="checkout-block__content">
+                <div class="form-grid">
+                  <div class="form-field form-field--half">
+                    <label for="custEmail">Email Address <span class="req">*</span></label>
+                    <input type="email" id="custEmail" name="email" required placeholder="name@example.com" autocomplete="email">
+                    <span class="field-error" id="custEmailError"></span>
+                  </div>
+
+                  <div class="form-field form-field--half">
+                    <label for="custPhone">Mobile Number (Egypt) <span class="req">*</span></label>
+                    <div class="phone-input-wrap">
+                      <span class="phone-prefix">+20</span>
+                      <input type="tel" id="custPhone" name="phone" required placeholder="010 1234 5678" autocomplete="tel">
+                    </div>
+                    <span class="field-hint">Required for delivery SMS &amp; courier drop-off call.</span>
+                    <span class="field-error" id="custPhoneError"></span>
+                  </div>
+                </div>
+
+                <label class="form-check-styled">
+                  <input type="checkbox" id="subscribeNews" checked>
+                  <span class="check-box"></span>
+                  <span class="check-label">Notify me of upcoming athlete collection drops and limited restocks</span>
+                </label>
+              </div>
+            </section>
+
+            <!-- 02: SHIPPING ADDRESS -->
+            <section class="checkout-block">
+              <div class="checkout-block__header">
+                <div class="block-tag">02</div>
+                <h3>Delivery Address</h3>
+              </div>
+              <div class="checkout-block__content">
+                <div class="form-grid">
+                  <div class="form-field form-field--half">
+                    <label for="custFirstName">First Name <span class="req">*</span></label>
+                    <input type="text" id="custFirstName" name="firstName" required placeholder="Karim" autocomplete="given-name">
+                    <span class="field-error" id="custFirstNameError"></span>
+                  </div>
+
+                  <div class="form-field form-field--half">
+                    <label for="custLastName">Last Name <span class="req">*</span></label>
+                    <input type="text" id="custLastName" name="lastName" required placeholder="Mansour" autocomplete="family-name">
+                    <span class="field-error" id="custLastNameError"></span>
+                  </div>
+
+                  <div class="form-field form-field--full">
+                    <label for="custAddress">Street Address &amp; Building <span class="req">*</span></label>
+                    <input type="text" id="custAddress" name="address" required placeholder="Street address, building number, compound or tower" autocomplete="street-address">
+                    <span class="field-error" id="custAddressError"></span>
+                  </div>
+
+                  <div class="form-field form-field--half">
+                    <label for="custApartment">Apartment, Floor, Suite</label>
+                    <input type="text" id="custApartment" name="apartment" placeholder="e.g. Apt 4B, Floor 3">
+                  </div>
+
+                  <div class="form-field form-field--half">
+                    <label for="custCity">Governorate <span class="req">*</span></label>
+                    <select id="custCity" name="city" required>
+                      <option value="" disabled selected>Select Governorate</option>
+                      <option value="Cairo">Cairo (القاهرة)</option>
+                      <option value="Giza">Giza (الجيزة)</option>
+                      <option value="Alexandria">Alexandria (الإسكندرية)</option>
+                      <option value="Dakahlia">Dakahlia (الدقهلية - المنصورة)</option>
+                      <option value="Sharqia">Sharqia (الشرقية)</option>
+                      <option value="Gharbia">Gharbia (الغربية - طنطا)</option>
+                      <option value="Qalyubia">Qalyubia (القليوبية)</option>
+                      <option value="Monufia">Monufia (المنوفية)</option>
+                      <option value="Beheira">Beheira (البحيرة)</option>
+                      <option value="Ismailia">Ismailia (الإسماعيلية)</option>
+                      <option value="Suez">Suez (السويس)</option>
+                      <option value="Port Said">Port Said (بورسعيد)</option>
+                      <option value="Red Sea">Red Sea (الغردقة / الجونة)</option>
+                      <option value="South Sinai">South Sinai (شرم الشيخ / دهب)</option>
+                      <option value="Other">Other Governorate</option>
+                    </select>
+                    <span class="field-error" id="custCityError"></span>
+                  </div>
+
+                  <div class="form-field form-field--half">
+                    <label for="custArea">City / District <span class="req">*</span></label>
+                    <input type="text" id="custArea" name="area" required placeholder="e.g. El Sherouk / New Cairo / Zamalek / Smouha">
+                    <span class="field-error" id="custAreaError"></span>
+                  </div>
+
+                  <div class="form-field form-field--half">
+                    <label for="custPostal">Postal Code</label>
+                    <input type="text" id="custPostal" name="postal" placeholder="e.g. 11835">
+                  </div>
+
+                  <div class="form-field form-field--full">
+                    <label for="custNotes">Courier Landmarks or Special Notes</label>
+                    <textarea id="custNotes" name="notes" rows="2" placeholder="e.g. Near Saudi Supermarket, ring 4th floor bell"></textarea>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- 03: SHIPPING SPEED -->
+            <section class="checkout-block">
+              <div class="checkout-block__header">
+                <div class="block-tag">03</div>
+                <h3>Shipping Speed</h3>
+              </div>
+              <div class="checkout-block__content">
+                <div class="athletic-options-grid">
+                  <label class="athletic-option is-selected" id="shippingStandardLabel">
+                    <input type="radio" name="shippingMethod" value="standard" checked>
+                    <div class="athletic-option__indicator"></div>
+                    <div class="athletic-option__content">
+                      <div class="athletic-option__title">
+                        <span>Standard Dispatch</span>
+                        <strong class="option-price" id="standardShippingPrice">Free</strong>
+                      </div>
+                      <p class="athletic-option__sub">Estimated 2–4 business days across Egypt. (Free for orders over 1000 EGP)</p>
+                    </div>
+                  </label>
+
+                  <label class="athletic-option" id="shippingExpressLabel">
+                    <input type="radio" name="shippingMethod" value="express">
+                    <div class="athletic-option__indicator"></div>
+                    <div class="athletic-option__content">
+                      <div class="athletic-option__title">
+                        <span>Priority Express Courier</span>
+                        <strong class="option-price">120.00 EGP</strong>
+                      </div>
+                      <p class="athletic-option__sub">Next business day guaranteed delivery in Cairo &amp; Giza metropolitan.</p>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            </section>
+
+            <!-- 04: PAYMENT METHOD -->
+            <section class="checkout-block">
+              <div class="checkout-block__header">
+                <div class="block-tag">04</div>
+                <h3>Payment Method</h3>
+              </div>
+              <div class="checkout-block__content">
+
+                <!-- 3 PAYMENT SELECTION TILES -->
+                <div class="payment-tiles-grid">
+                  <label class="pay-tile is-selected" id="paymentCardLabel">
+                    <input type="radio" name="paymentMethod" value="card" checked>
+                    <div class="pay-tile__top">
+                      <span class="pay-tile__name">Credit / Debit Card</span>
+                      <div class="pay-brands">
+                        <span class="brand-pill brand-visa">VISA</span>
+                        <span class="brand-pill brand-mc">MC</span>
+                        <span class="brand-pill brand-meeza">MEEZA</span>
+                      </div>
+                    </div>
+                    <p class="pay-tile__desc">Instant payment via Visa, MasterCard or Meeza</p>
+                  </label>
+
+                  <label class="pay-tile" id="paymentCodLabel">
+                    <input type="radio" name="paymentMethod" value="cod">
+                    <div class="pay-tile__top">
+                      <span class="pay-tile__name">Cash on Delivery</span>
+                      <span class="pay-badge-cod">Doorstep</span>
+                    </div>
+                    <p class="pay-tile__desc">Pay cash in hand when your package arrives</p>
+                  </label>
+
+                  <label class="pay-tile" id="paymentWalletLabel">
+                    <input type="radio" name="paymentMethod" value="wallet">
+                    <div class="pay-tile__top">
+                      <span class="pay-tile__name">InstaPay / Wallet</span>
+                      <span class="pay-badge-wallet">Instant</span>
+                    </div>
+                    <p class="pay-tile__desc">InstaPay handle or Vodafone / Orange Cash</p>
+                  </label>
+                </div>
+
+                <!-- CARD DETAILS MODULE -->
+                <div class="card-module" id="cardDetailsBox">
+                  <div class="card-module__badge">
+                    <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    <span>PCI-DSS Compliant &bull; End-to-End Encrypted Transaction</span>
+                  </div>
+
+                  <div class="form-grid">
+                    <div class="form-field form-field--full">
+                      <label for="cardHolder">Cardholder Name <span class="req">*</span></label>
+                      <input type="text" id="cardHolder" name="cardHolder" placeholder="e.g. KARIM MANSOUR" autocomplete="cc-name">
+                      <span class="field-error" id="cardHolderError"></span>
+                    </div>
+
+                    <div class="form-field form-field--full">
+                      <label for="cardNumber">Card Number <span class="req">*</span></label>
+                      <div class="card-input-box">
+                        <input type="text" id="cardNumber" name="cardNumber" inputmode="numeric" placeholder="4532 &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull;" maxlength="19" autocomplete="cc-number">
+                        <span class="card-brand-display" id="cardTypeIndicator">CARD</span>
+                      </div>
+                      <span class="field-error" id="cardNumberError"></span>
+                    </div>
+
+                    <div class="form-field form-field--half">
+                      <label for="cardExpiry">Expiration Date <span class="req">*</span></label>
+                      <input type="text" id="cardExpiry" name="cardExpiry" placeholder="MM / YY" maxlength="7" inputmode="numeric" autocomplete="cc-exp">
+                      <span class="field-error" id="cardExpiryError"></span>
+                    </div>
+
+                    <div class="form-field form-field--half">
+                      <div class="label-row">
+                        <label for="cardCvv">CVV / CVC <span class="req">*</span></label>
+                        <span class="cvv-hint" title="3-digit security code on the back of your card">3 Digits</span>
+                      </div>
+                      <input type="password" id="cardCvv" name="cardCvv" placeholder="123" maxlength="4" inputmode="numeric" autocomplete="cc-csc">
+                      <span class="field-error" id="cardCvvError"></span>
+                    </div>
+                  </div>
+
+                  <label class="form-check-styled" style="margin-top:14px;">
+                    <input type="checkbox" id="saveCardPref" checked>
+                    <span class="check-box"></span>
+                    <span class="check-label">Remember card securely for faster athlete gear checkouts</span>
+                  </label>
+                </div>
+
+                <!-- CASH ON DELIVERY MODULE -->
+                <div class="pay-info-box" id="codDetailsBox" hidden>
+                  <div class="pay-info-box__inner">
+                    <span class="pay-info-icon">&bull;</span>
+                    <div>
+                      <strong>Cash on Delivery (Doorstep Payment)</strong>
+                      <p>You can inspect your package and pay the delivery courier in Egyptian Pounds (EGP). Please prepare exact change if possible.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- INSTAPAY MODULE -->
+                <div class="pay-info-box" id="walletDetailsBox" hidden>
+                  <div class="pay-info-box__inner">
+                    <span class="pay-info-icon">&bull;</span>
+                    <div>
+                      <strong>InstaPay &amp; Egyptian Mobile Wallets</strong>
+                      <p>Transfer instantly to Kynetix Collective merchant handle: <strong style="font-family:monospace; background:#e0e0e0; padding:2px 6px;">kynetix@instapay</strong> or Vodafone Cash <strong style="font-family:monospace; background:#e0e0e0; padding:2px 6px;">0100 892 4110</strong>. Your order confirmation receipt will contain your unique tracking order number.</p>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </section>
+
+            <!-- PRIMARY SUBMIT CTA -->
+            <div class="checkout-cta-wrap">
+              <button type="submit" class="btn btn--black btn--full checkout-place-order-btn" id="placeOrderBtn">
+                <span id="placeOrderText">Complete Order &bull; <strong id="btnTotalDisplay">0.00 EGP</strong></span>
+                <span class="spinner" id="orderSpinner" hidden></span>
+              </button>
+
+              <p class="checkout-guarantee-note">
+                By completing your order, you agree to Kynetix Collective's terms, guarantee policies, and authentic performance warranties.
+              </p>
+            </div>
+
+          </form>
+        </div>
+
+        <!-- RIGHT COLUMN: EDITORIAL ORDER REVIEW -->
+        <aside class="checkout-sidebar" aria-label="Order Summary">
+          <div class="order-summary-panel">
+            <div class="summary-header">
+              <h3>Your Gear</h3>
+              <span class="summary-count" id="summaryCount">0 Items</span>
+            </div>
+
+            <!-- ITEMS SCROLLER -->
+            <div class="summary-items-list" id="summaryItemsList"></div>
+
+            <!-- PROMO CODE SECTION -->
+            <div class="summary-promo">
+              <div class="promo-input-group">
+                <input type="text" id="promoInput" placeholder="PROMO CODE" aria-label="Promo code">
+                <button type="button" class="btn-promo-apply" id="applyPromoBtn">Apply</button>
+              </div>
+              <div class="promo-tag-active" id="promoAppliedTag" hidden>
+                <span>Coupon <strong id="appliedCodeName">KYNETIX10</strong> applied</span>
+                <button type="button" id="removePromoBtn" aria-label="Remove promo">&times;</button>
+              </div>
+              <p class="promo-feedback" id="promoMessage"></p>
+              <div class="promo-suggestions">
+                <span>Try code:</span>
+                <button type="button" class="demo-code-pill" data-code="KYNETIX10">KYNETIX10 (-10%)</button>
+                <button type="button" class="demo-code-pill" data-code="FREESHIP">FREESHIP</button>
+              </div>
+            </div>
+
+            <!-- TOTALS BREAKDOWN -->
+            <div class="summary-totals">
+              <div class="total-row">
+                <span>Subtotal</span>
+                <strong id="summarySubtotal">0.00 EGP</strong>
+              </div>
+              <div class="total-row">
+                <span>Estimated Shipping</span>
+                <strong id="summaryShipping">0.00 EGP</strong>
+              </div>
+              <div class="total-row discount-row" id="summaryDiscountRow" hidden>
+                <span>Discount (<span id="discountPercentText">10%</span>)</span>
+                <strong id="summaryDiscount">-0.00 EGP</strong>
+              </div>
+              <div class="total-row">
+                <span>VAT (14%)</span>
+                <span class="tag-vat">Included in price</span>
+              </div>
+              <div class="total-row total-row--final">
+                <span>Grand Total</span>
+                <strong id="summaryTotal">0.00 EGP</strong>
+              </div>
+            </div>
+
+            <!-- ATHLETIC TRUST ACCORDION -->
+            <div class="summary-trust">
+              <div class="trust-point">
+                <span class="trust-bullet">&bull;</span>
+                <div>
+                  <strong>100% Certified Authentic</strong>
+                  <p>Guaranteed authentic Nike, Adidas, Puma, Reebok &amp; Under Armour.</p>
+                </div>
+              </div>
+              <div class="trust-point">
+                <span class="trust-bullet">&bull;</span>
+                <div>
+                  <strong>14-Day Free Exchange Policy</strong>
+                  <p>Wrong size? We will exchange your apparel or shoes at zero extra cost.</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </aside>
+
+      </div>
+    </div>
+
+    <!-- ORDER CONFIRMATION INVOICE / RECEIPT (SHOWN AFTER ORDER) -->
+    <div class="confirmation-wrap" id="orderConfirmation" hidden>
+      <div class="receipt-card">
+        <div class="receipt-header">
+          <p class="eyebrow" style="color:var(--black); letter-spacing:.25em;">KYNETIX COLLECTIVE &bull; DISPATCH RECEIPT</p>
+          <h2 id="confirmCustomerHeading">Order Confirmed</h2>
+          <p class="receipt-sub">Thank you for your order. Our team in Cairo is preparing your performance gear for courier pickup.</p>
+        </div>
+
+        <div class="receipt-meta-grid">
+          <div class="receipt-meta-cell">
+            <span class="meta-label">Order Number</span>
+            <strong class="meta-code" id="confirmOrderNumber">KYN-842910</strong>
+          </div>
+          <div class="receipt-meta-cell">
+            <span class="meta-label">Order Date</span>
+            <strong id="confirmOrderDate">Today</strong>
+          </div>
+          <div class="receipt-meta-cell">
+            <span class="meta-label">Payment Method</span>
+            <strong id="confirmPaymentMethod">Credit Card</strong>
+          </div>
+          <div class="receipt-meta-cell">
+            <span class="meta-label">Estimated Delivery</span>
+            <strong id="confirmDeliveryDate">2–4 Business Days</strong>
+          </div>
+        </div>
+
+        <div class="receipt-section">
+          <h4>Destination &amp; Contact</h4>
+          <div class="receipt-address-box" id="confirmShippingDetails"></div>
+        </div>
+
+        <div class="receipt-section">
+          <h4>Order Breakdown</h4>
+          <div class="receipt-items-list" id="confirmItemsList"></div>
+        </div>
+
+        <div class="receipt-summary-box">
+          <div class="total-row">
+            <span>Payment Status</span>
+            <strong class="tag-status-paid" id="confirmPayStatus">Confirmed &amp; Approved</strong>
+          </div>
+          <div class="total-row total-row--final" style="border:none; padding-top:8px;">
+            <span>Total Paid</span>
+            <strong id="confirmTotalPaid">0.00 EGP</strong>
+          </div>
+        </div>
+
+        <div class="receipt-actions">
+          <button type="button" class="btn btn--black" onclick="window.print()">Print Receipt</button>
+          <a href="shop.html" class="btn">Back to Shop</a>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <p>&copy; <span id="year"></span> Kynetix Collective. All rights reserved.</p>
+  </footer>
+
+  <!-- BAG DRAWER (REUSABLE) -->
+  <div class="overlay" id="overlay"></div>
+  <aside class="drawer" id="bagDrawer" aria-hidden="true" aria-label="Shopping bag">
+    <div class="drawer__head">
+      <h3>Your Bag</h3>
+      <button class="icon-btn" id="closeBag" aria-label="Close bag">
+        <svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></svg>
+      </button>
+    </div>
+    <div class="drawer__body" id="bagItems"></div>
+    <div class="drawer__foot">
+      <div class="total"><span>Subtotal</span><strong id="bagTotal">0.00 EGP</strong></div>
+      <a href="checkout.html" class="btn btn--black btn--full" id="checkoutBtn" style="display:flex; justify-content:center; align-items:center; gap:8px;">
+        <span>Checkout Now</span>
+        <i>&rarr;</i>
+      </a>
+    </div>
+  </aside>
+
+  <!-- ACCOUNT MODAL (REUSABLE) -->
+  <div class="modal" id="authModal" aria-hidden="true" role="dialog" aria-label="Account">
+    <div class="modal__box">
+      <button class="icon-btn modal__close" id="closeAuth" aria-label="Close">
+        <svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></svg>
+      </button>
+      <div class="tabs">
+        <button class="tab is-active" data-tab="login">Log In</button>
+        <button class="tab" data-tab="signup">Sign Up</button>
+      </div>
+      <form class="auth-form" id="loginForm">
+        <label>Email<input type="email" required placeholder="you@example.com"></label>
+        <label>Password<input type="password" required placeholder="••••••••"></label>
+        <button class="btn btn--black btn--full" type="submit">Log In</button>
+      </form>
+      <form class="auth-form" id="signupForm" hidden>
+        <label>Full name<input type="text" required placeholder="Your name"></label>
+        <label>Email<input type="email" required placeholder="you@example.com"></label>
+        <label>Password<input type="password" required minlength="6" placeholder="At least 6 characters"></label>
+        <button class="btn btn--black btn--full" type="submit">Create Account</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>

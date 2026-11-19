@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard | Kynetix Collective</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,400;0,500;0,600;1,700;1,800;1,900&family=Barlow+Condensed:ital,wght@1,700;1,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="announce">Admin Mode &nbsp;|&nbsp; Connected to MySQL Database (kynetix_collective)</div>
+
+  <header class="header">
+    <div class="header__inner">
+      <a href="index.html" class="logo" aria-label="Kynetix Collective home">
+        <img src="images/logo.png" alt="Kynetix Collective" id="logoImg">
+        <span class="logo__fallback" id="logoFallback" hidden>
+          <strong>KYNETIX</strong><small>COLLECTIVE</small>
+        </span>
+      </a>
+      <div style="flex:1"></div>
+      <div style="display:flex; gap:10px;"><a href="shop.html" class="btn" style="padding: 12px 20px; font-size: 13px;">View Shop</a><a href="index.html" class="btn btn--black" style="padding: 12px 20px; font-size: 13px;">Home</a></div>
+    </div>
+  </header>
+
+  <main class="section admin-page">
+    <div class="section__head">
+      <h2>Product Catalog Admin</h2>
+      <span class="line"></span>
+      <button type="button" class="btn btn--black" id="resetCatalogBtn" style="padding: 12px 20px; font-size: 12px;">Reset Defaults</button>
+    </div>
+
+    <div class="admin-layout">
+      <!-- FORM: ADD / EDIT PRODUCT -->
+      <div class="admin-card">
+        <h3 id="adminFormTitle">Add New Product</h3>
+        <form id="adminProductForm" class="auth-form">
+          <input type="hidden" id="editOriginalId">
+
+          <label>Product ID (URL Slug, e.g. puma-velocity)
+            <input type="text" id="prodIdInput" required placeholder="e.g. nike-air-max">
+          </label>
+
+          <label>Category
+            <select id="prodCategoryInput" required style="padding:13px 14px; border:1.5px solid var(--grey-300); font-size:15px; font-family:inherit; background:var(--white);">
+              <option value="Men">Men</option>
+              <option value="Women">Women</option>
+              <option value="Kids">Kids</option>
+              <option value="Accessories">Accessories</option>
+            </select>
+          </label>
+
+          <label>Subcategory (e.g. Shoes, Tops, Hoodies, Pants, Bags)
+            <input type="text" id="prodSubInput" required placeholder="e.g. Shoes">
+          </label>
+
+          <label>Brand
+            <input type="text" id="prodBrandInput" required placeholder="e.g. Nike">
+          </label>
+
+          <label>Product Name
+            <input type="text" id="prodNameInput" required placeholder="e.g. Air Max 270">
+          </label>
+
+          <label>Price (EGP)
+            <input type="number" id="prodPriceInput" step="0.01" min="0" required placeholder="4500.00">
+          </label>
+
+          <label>Description
+            <textarea id="prodDescInput" rows="3" required placeholder="Short product description..."></textarea>
+          </label>
+
+          <label>Sizes (comma-separated)
+            <input type="text" id="prodSizesInput" required placeholder="US 8, US 9, US 10, US 11">
+          </label>
+
+          <div class="admin-colors-wrap">
+            <div class="admin-colors-head">
+              <label style="margin:0;">Colors & Images</label>
+              <button type="button" class="btn-small" id="addColorRowBtn">+ Add Color</button>
+            </div>
+            <div id="colorRowsContainer"></div>
+          </div>
+
+          <div class="admin-stock-matrix-wrap">
+            <div class="admin-colors-head">
+              <label style="margin:0;">Stock by Color & Size</label>
+              <button type="button" class="btn-small" id="fillStockBtn">Set All to 5</button>
+            </div>
+            <div id="variantStockContainer" class="variant-stock-list"></div>
+          </div>
+
+          <div style="display: flex; gap: 10px; margin-top: 8px;">
+            <button type="submit" class="btn btn--black" style="flex:1;" id="saveProdBtn">Save Product</button>
+            <button type="button" class="btn" id="cancelEditBtn" hidden style="padding: 16px 20px;">Cancel</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- LIST: EXISTING PRODUCTS -->
+      <div class="admin-list-wrap">
+        <h3>Existing Products (<span id="prodCount">0</span>)</h3>
+        <div id="adminProductList" class="admin-list"></div>
+      </div>
+    </div>
+  </main>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>

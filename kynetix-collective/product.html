@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Details | Kynetix Collective</title>
+  <meta name="description" content="Shop performance sportswear from Nike, Adidas, Puma, Reebok and Under Armour at Kynetix Collective.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,400;0,500;0,600;0,700;1,700;1,800;1,900&family=Barlow+Condensed:ital,wght@1,700;1,800;1,900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="announce">Free shipping on orders over 1000 EGP &nbsp;|&nbsp; 14-Day Free Returns & Exchanges</div>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header__inner">
+
+      <button class="icon-btn menu-toggle" id="menuToggle" aria-label="Open menu" aria-expanded="false">
+        <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+
+      <a href="index.html" class="logo" aria-label="Kynetix Collective home">
+        <img src="images/logo.png" alt="Kynetix Collective" id="logoImg">
+        <span class="logo__fallback" id="logoFallback" hidden>
+          <strong>KYNETIX</strong><small>COLLECTIVE</small>
+        </span>
+      </a>
+
+      <nav class="nav" id="nav" aria-label="Main">
+        <div class="nav-item">
+          <a href="shop.html?category=Men">Men</a>
+          <div class="dropdown">
+            <a href="shop.html?category=Men&sub=Shoes">Shoes</a>
+            <a href="shop.html?category=Men&sub=Tops">Tops & T-Shirts</a>
+            <a href="shop.html?category=Men&sub=Hoodies">Hoodies & Jackets</a>
+            <a href="shop.html?category=Men&sub=Pants">Pants & Shorts</a>
+          </div>
+        </div>
+
+        <div class="nav-item">
+          <a href="shop.html?category=Women">Women</a>
+          <div class="dropdown">
+            <a href="shop.html?category=Women&sub=Shoes">Shoes</a>
+            <a href="shop.html?category=Women&sub=Tops">Tops & Sports Bras</a>
+            <a href="shop.html?category=Women&sub=Leggings">Leggings & Shorts</a>
+            <a href="shop.html?category=Women&sub=Hoodies">Hoodies & Jackets</a>
+          </div>
+        </div>
+
+        <div class="nav-item">
+          <a href="shop.html?category=Kids">Kids</a>
+          <div class="dropdown">
+            <a href="shop.html?category=Kids&sub=Shoes">Shoes</a>
+            <a href="shop.html?category=Kids&sub=Boys">Boys Clothing</a>
+            <a href="shop.html?category=Kids&sub=Girls">Girls Clothing</a>
+          </div>
+        </div>
+
+        <div class="nav-item">
+          <a href="shop.html?category=Accessories">Accessories</a>
+          <div class="dropdown">
+            <a href="shop.html?category=Accessories&sub=Bags">Bags & Backpacks</a>
+            <a href="shop.html?category=Accessories&sub=Hats">Hats & Caps</a>
+            <a href="shop.html?category=Accessories&sub=Socks">Socks & Gear</a>
+          </div>
+        </div>
+
+        <div class="nav-item">
+          <a href="shop.html">Brands</a>
+          <div class="dropdown">
+            <a href="shop.html?brand=Nike">Nike</a>
+            <a href="shop.html?brand=Adidas">Adidas</a>
+            <a href="shop.html?brand=Puma">Puma</a>
+            <a href="shop.html?brand=Reebok">Reebok</a>
+            <a href="shop.html?brand=Under Armour">Under Armour</a>
+          </div>
+        </div>
+
+        <div class="nav-item">
+          <a href="track.html">Track Order</a>
+        </div>
+      </nav>
+
+      <form class="search" role="search" id="searchForm" autocomplete="off">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input type="search" id="searchInput" placeholder="Search shoes, apparel, brands..." aria-label="Search">
+        <div class="search-dropdown" id="searchDropdown" hidden></div>
+      </form>
+
+      <div class="actions">
+        <button class="icon-btn wishlist-btn" id="wishlistBtn" aria-label="Open wishlist">
+          <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+          <span class="bag-count" id="wishlistCount">0</span>
+        </button>
+        <button class="icon-btn" id="accountBtn" aria-label="Sign in or log in">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+        </button>
+        <button class="icon-btn bag-btn" id="bagBtn" aria-label="Open shopping bag">
+          <svg viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6L5 8z"/><path d="M9 8V6a3 3 0 016 0v2"/></svg>
+          <span class="bag-count" id="bagCount">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- PRODUCT PAGE -->
+  <main class="section product-page">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+      <a href="shop.html" class="back-link" style="margin-bottom:0;">&larr; Back to Shop</a>
+      <span class="sku-tag" id="prodSkuTag">SKU: KYN-001</span>
+    </div>
+
+    <div class="product-layout">
+      <!-- Product Gallery & Multi-Angle Thumbnails -->
+      <div class="product-gallery-wrap">
+        <div class="product-gallery">
+          <img id="prodImg" src="" alt="Main product image">
+        </div>
+        <div class="gallery-thumbs" id="galleryThumbs"></div>
+      </div>
+
+      <!-- Product Details & Options -->
+      <div class="product-info">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <p class="eyebrow" id="prodBrand" style="color: var(--grey-600); margin-bottom:8px;"></p>
+          <div class="rating-stars-badge">
+            <span class="stars">★★★★★</span>
+            <span class="rating-val" id="avgRatingHeader">4.9 (28 reviews)</span>
+          </div>
+        </div>
+
+        <h1 id="prodTitle"></h1>
+        <p class="product-price" id="prodPrice"></p>
+        <p class="stock-status" id="prodStockStatus"></p>
+        <p class="product-desc" id="prodDesc"></p>
+
+        <!-- Color Picker -->
+        <div class="option-group">
+          <label>Color: <strong id="selectedColorName"></strong></label>
+          <div class="color-swatches" id="colorOptions"></div>
+        </div>
+
+        <!-- Size Picker with Size Guide link -->
+        <div class="option-group">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <label style="margin-bottom:0;">Select Size</label>
+            <button type="button" class="btn-size-guide-link" id="openSizeGuide">Size Chart &rarr;</button>
+          </div>
+          <div class="size-grid" id="sizeOptions"></div>
+        </div>
+
+        <!-- Add to Bag and Wishlist Row -->
+        <div class="product-actions-group">
+          <button class="btn btn--black btn--full" id="addToCartBtn">Add to Bag</button>
+          <button type="button" class="btn btn--full btn-wishlist-toggle" id="prodWishlistBtn">
+            <span class="wish-heart">&hearts;</span>
+            <span id="prodWishlistText">Save to Wishlist</span>
+          </button>
+        </div>
+
+        <!-- Key Athlete Features Badge -->
+        <div class="prod-perks-box">
+          <div class="perk-item">
+            <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <div><strong>100% Authentic Product</strong><span>Direct brand authorization &amp; original box</span></div>
+          </div>
+          <div class="perk-item">
+            <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            <div><strong>14-Day Free Exchanges</strong><span>Effortless doorstep sizing swap across Egypt</span></div>
+          </div>
+          <div class="perk-item">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            <div><strong>Fast Cairo Dispatch</strong><span>Delivery within 24–48 hours in Cairo &amp; Giza</span></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- REVIEWS & RATINGS SECTION -->
+    <section class="section prod-reviews-section">
+      <div class="section__head">
+        <h2>Athlete Reviews</h2>
+        <span class="line"></span>
+        <button type="button" class="btn btn--black" id="openReviewModalBtn" style="padding:10px 20px; font-size:12px;">Write A Review</button>
+      </div>
+
+      <div class="reviews-summary-grid">
+        <div class="reviews-score-card">
+          <div class="score-large">4.9</div>
+          <div class="score-stars">★★★★★</div>
+          <p>Based on 28 verified athlete reviews</p>
+          <div class="fit-gauge">
+            <span>Fit Rating:</span>
+            <strong>96% True to Size</strong>
+          </div>
+        </div>
+
+        <div class="reviews-breakdown-card">
+          <div class="bar-row"><span>5 Stars</span><div class="bar-track"><div class="bar-fill" style="width:88%;"></div></div><span>88%</span></div>
+          <div class="bar-row"><span>4 Stars</span><div class="bar-track"><div class="bar-fill" style="width:10%;"></div></div><span>10%</span></div>
+          <div class="bar-row"><span>3 Stars</span><div class="bar-track"><div class="bar-fill" style="width:2%;"></div></div><span>2%</span></div>
+          <div class="bar-row"><span>2 Stars</span><div class="bar-track"><div class="bar-fill" style="width:0%;"></div></div><span>0%</span></div>
+          <div class="bar-row"><span>1 Star</span><div class="bar-track"><div class="bar-fill" style="width:0%;"></div></div><span>0%</span></div>
+        </div>
+      </div>
+
+      <!-- REVIEWS FEED -->
+      <div class="reviews-feed" id="reviewsFeed">
+        <div class="review-card">
+          <div class="review-card__header">
+            <strong>Tarek El-Gendy &bull; Cairo Marathon Runner</strong>
+            <span class="review-stars">★★★★★</span>
+          </div>
+          <p class="review-text">"Unbelievable energy return. Tested them on a 15km road run in Cairo — the cushioning stays responsive from the first kilometer to the last. Arrived in Cairo within 24 hours in mint condition."</p>
+          <span class="review-date">Verified Athlete Purchase &bull; 3 days ago</span>
+        </div>
+
+        <div class="review-card">
+          <div class="review-card__header">
+            <strong>Nourhan Mansour &bull; CrossFit Athlete</strong>
+            <span class="review-stars">★★★★★</span>
+          </div>
+          <p class="review-text">"True to size, perfectly locked-in heel counter, and zero slippage on agility work. 100% authentic and the packaging was immaculate. Highly recommend Kynetix Collective."</p>
+          <span class="review-date">Verified Athlete Purchase &bull; 1 week ago</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- COMPLETE THE LOOK / RECOMMENDED GEAR -->
+    <section class="section recommended-section">
+      <div class="section__head">
+        <h2>Complete The Kit</h2>
+        <span class="line"></span>
+      </div>
+      <div class="product-grid" id="recommendedGrid"></div>
+    </section>
+
+  </main>
+
+  <!-- SIZE GUIDE MODAL -->
+  <div class="modal" id="sizeGuideModal" aria-hidden="true" role="dialog" aria-label="Size Guide">
+    <div class="modal__box modal__box--large">
+      <button class="icon-btn modal__close" id="closeSizeGuide" aria-label="Close size guide">
+        <svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></svg>
+      </button>
+      <div class="modal__header">
+        <h3>Size &amp; Fit Guide</h3>
+        <p style="color:var(--grey-600); font-size:14px;">Find your exact performance fit across athletic footwear and apparel.</p>
+      </div>
+
+      <div class="size-guide-tabs">
+        <button class="size-tab is-active" data-size-tab="shoes">Footwear Sizing</button>
+        <button class="size-tab" data-size-tab="apparel">Apparel Sizing</button>
+      </div>
+
+      <!-- FOOTWEAR TABLE -->
+      <div class="size-table-wrap" id="sizeTableShoes">
+        <table class="size-table">
+          <thead>
+            <tr><th>US Men</th><th>US Women</th><th>UK</th><th>EU</th><th>Foot Length (CM)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>US 7</td><td>US 8.5</td><td>6.0</td><td>40.0</td><td>25.0 cm</td></tr>
+            <tr><td>US 8</td><td>US 9.5</td><td>7.0</td><td>41.0</td><td>26.0 cm</td></tr>
+            <tr><td>US 9</td><td>US 10.5</td><td>8.0</td><td>42.5</td><td>27.0 cm</td></tr>
+            <tr><td>US 10</td><td>US 11.5</td><td>9.0</td><td>44.0</td><td>28.0 cm</td></tr>
+            <tr><td>US 11</td><td>US 12.5</td><td>10.0</td><td>45.0</td><td>29.0 cm</td></tr>
+            <tr><td>US 12</td><td>US 13.5</td><td>11.0</td><td>46.0</td><td>30.0 cm</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:12px; color:var(--grey-600); margin-top:10px;">* If you fall between two sizes, we recommend ordering half a size up for running and training footwear.</p>
+      </div>
+
+      <!-- APPAREL TABLE -->
+      <div class="size-table-wrap" id="sizeTableApparel" hidden>
+        <table class="size-table">
+          <thead>
+            <tr><th>Size</th><th>Chest (CM)</th><th>Waist (CM)</th><th>Hips (CM)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>XS</td><td>82 – 87 cm</td><td>68 – 73 cm</td><td>84 – 89 cm</td></tr>
+            <tr><td>S</td><td>88 – 95 cm</td><td>74 – 81 cm</td><td>90 – 97 cm</td></tr>
+            <tr><td>M</td><td>96 – 103 cm</td><td>82 – 89 cm</td><td>98 – 105 cm</td></tr>
+            <tr><td>L</td><td>104 – 111 cm</td><td>90 – 97 cm</td><td>106 – 113 cm</td></tr>
+            <tr><td>XL</td><td>112 – 119 cm</td><td>98 – 105 cm</td><td>114 – 121 cm</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- WRITE REVIEW MODAL -->
+  <div class="modal" id="reviewModal" aria-hidden="true" role="dialog" aria-label="Write a Review">
+    <div class="modal__box">
+      <button class="icon-btn modal__close" id="closeReviewModal" aria-label="Close">
+        <svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></svg>
+      </button>
+      <h3 style="font-family:var(--font-display); font-style:italic; font-weight:800; font-size:26px; text-transform:uppercase; margin-bottom:12px;">Submit Athlete Review</h3>
+      <form id="writeReviewForm" class="auth-form">
+        <label>Your Name &bull; Sport / Discipline
+          <input type="text" id="revAuthor" required placeholder="e.g. Omar K. • Runner">
+        </label>
+        <label>Star Rating
+          <select id="revStars" required style="padding:12px; border:1.5px solid var(--grey-300); font-family:inherit; background:#fff;">
+            <option value="5">★★★★★ (5/5 Exceptional)</option>
+            <option value="4">★★★★☆ (4/5 Great)</option>
+            <option value="3">★★★☆☆ (3/5 Average)</option>
+          </select>
+        </label>
+        <label>Your Performance Review
+          <textarea id="revComment" rows="4" required placeholder="Describe fit, responsiveness, and how it performs in training..."></textarea>
+        </label>
+        <button type="submit" class="btn btn--black btn--full">Post Verified Review</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- EXPANDED ATHLETIC FOOTER -->
+  <footer class="footer-expanded">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <a href="index.html" class="footer-logo">
+          <strong>KYNETIX</strong><small>COLLECTIVE</small>
+        </a>
+        <p class="footer-tagline">Engineered for human potential. Curating authentic performance footwear, apparel, and athletic accessories across Egypt.</p>
+        <div class="footer-payment-badges">
+          <span class="pay-tag">VISA</span>
+          <span class="pay-tag">MASTERCARD</span>
+          <span class="pay-tag">MEEZA</span>
+          <span class="pay-tag">INSTAPAY</span>
+          <span class="pay-tag">CASH ON DELIVERY</span>
+        </div>
+      </div>
+
+      <div class="footer-col">
+        <h4>Shop Categories</h4>
+        <ul>
+          <li><a href="shop.html?category=Men">Men's Sportswear</a></li>
+          <li><a href="shop.html?category=Women">Women's Sportswear</a></li>
+          <li><a href="shop.html?category=Kids">Junior &amp; Kids</a></li>
+          <li><a href="shop.html?category=Accessories">Bags &amp; Gear</a></li>
+          <li><a href="shop.html">New Season Drops</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Customer Support</h4>
+        <ul>
+          <li><a href="track.html">Track Your Order</a></li>
+          <li><a href="faq.html">14-Day Free Returns</a></li>
+          <li><a href="faq.html#shipping">Shipping &amp; Delivery</a></li>
+          <li><a href="contact.html">Contact Us</a></li>
+          <li><a href="about.html">About The Collective</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Cairo Flagship</h4>
+        <p>The British University in Egypt, Building A, El Sherouk City, Cairo, Egypt</p>
+        <p style="margin-top:8px;">Daily: 10:00 AM – 10:00 PM</p>
+        <p style="margin-top:8px;"><strong>Support:</strong> +20 100 892 4110</p>
+        <a href="https://wa.me/201008924110" target="_blank" class="footer-wa-btn">Chat on WhatsApp</a>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>&copy; <span id="year"></span> Kynetix Collective. All rights reserved. 100% Authentic Brand Guarantee.</p>
+    </div>
+  </footer>
+
+  <!-- BAG DRAWER (REUSABLE) -->
+  <div class="overlay" id="overlay"></div>
+  <aside class="drawer" id="bagDrawer" aria-hidden="true" aria-label="Shopping bag">
+    <div class="drawer__head">
+      <h3>Your Bag</h3>
+      <button class="icon-btn" id="closeBag" aria-label="Close bag">
+        <svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></svg>
+      </button>
+    </div>
+    <div class="drawer__body" id="bagItems"></div>
+    <div class="drawer__foot">
+      <div class="total"><span>Subtotal</span><strong id="bagTotal">0.00 EGP</strong></div>
+      <a href="checkout.html" class="btn btn--black btn--full" id="checkoutBtn" style="display:flex; justify-content:center; align-items:center; gap:8px;">
+        <span>Checkout Now</span>
+        <span style="font-size:18px;">&rarr;</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- WISHLIST DRAWER -->
+  <aside class="drawer drawer--wishlist" id="wishlistDrawer" aria-hidden="true" aria-label="Saved items">
+    <div class="drawer__head">
+      <h3>Your Wishlist</h3>
+      <button class="icon-btn" id="closeWishlist" aria-label="Close wishlist">
+        <svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></svg>
+      </button>
+    </div>
+    <div class="drawer__body" id="wishlistItems"></div>
+  </aside>
+
+  <!-- ACCOUNT MODAL -->
+  <div class="modal" id="authModal" aria-hidden="true" role="dialog" aria-label="Account">
+    <div class="modal__box">
+      <button class="icon-btn modal__close" id="closeAuth" aria-label="Close">
+        <svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></svg>
+      </button>
+      <div id="authGuestView">
+        <div class="tabs">
+          <button class="tab is-active" data-tab="login">Log In</button>
+          <button class="tab" data-tab="signup">Sign Up</button>
+        </div>
+        <form class="auth-form" id="loginForm">
+          <label>Email<input type="email" id="loginEmail" required placeholder="you@example.com"></label>
+          <label>Password<input type="password" id="loginPassword" required placeholder="••••••••"></label>
+          <button class="btn btn--black btn--full" type="submit">Log In</button>
+        </form>
+        <form class="auth-form" id="signupForm" hidden>
+          <label>Full name<input type="text" id="signupName" required placeholder="Your name"></label>
+          <label>Email<input type="email" id="signupEmail" required placeholder="you@example.com"></label>
+          <label>Password<input type="password" id="signupPassword" required minlength="6" placeholder="At least 6 characters"></label>
+          <button class="btn btn--black btn--full" type="submit">Create Account</button>
+        </form>
+      </div>
+
+      <div id="authUserDashboard" hidden>
+        <div class="user-dash-header">
+          <h3 id="userDashName">Karim Mansour</h3>
+          <p id="userDashEmail" style="color:var(--grey-600); font-size:13px;">karim@example.com</p>
+        </div>
+        <div class="user-dash-section">
+          <h4>Recent Orders</h4>
+          <div id="userDashOrders" class="user-dash-orders"></div>
+        </div>
+        <button type="button" class="btn btn--full" id="logoutBtn" style="margin-top:20px;">Log Out</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>

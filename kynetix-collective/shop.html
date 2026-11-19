@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shop All | Kynetix Collective</title>
+  <meta name="description" content="Browse and filter premium sportswear from Nike, Adidas, Puma, Reebok and Under Armour.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,400;0,500;0,600;1,700;1,800;1,900&family=Barlow+Condensed:ital,wght@1,700;1,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="announce">Free shipping on orders over 1000 EGP &nbsp;|&nbsp; New season drops every week</div>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header__inner">
+
+      <button class="icon-btn menu-toggle" id="menuToggle" aria-label="Open menu" aria-expanded="false">
+        <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+
+      <a href="index.html" class="logo" aria-label="Kynetix Collective home">
+        <img src="images/logo.png" alt="Kynetix Collective" id="logoImg">
+        <span class="logo__fallback" id="logoFallback" hidden>
+          <strong>KYNETIX</strong><small>COLLECTIVE</small>
+        </span>
+      </a>
+
+      <nav class="nav" id="nav" aria-label="Main">
+        <div class="nav-item">
+          <a href="shop.html?category=Men">Men</a>
+          <div class="dropdown">
+            <a href="shop.html?category=Men&sub=Shoes">Shoes</a>
+            <a href="shop.html?category=Men&sub=Tops">Tops & T-Shirts</a>
+            <a href="shop.html?category=Men&sub=Hoodies">Hoodies & Jackets</a>
+            <a href="shop.html?category=Men&sub=Pants">Pants & Shorts</a>
+          </div>
+        </div>
+
+        <div class="nav-item">
+          <a href="shop.html?category=Women">Women</a>
+          <div class="dropdown">
+            <a href="shop.html?category=Women&sub=Shoes">Shoes</a>
+            <a href="shop.html?category=Women&sub=Tops">Tops & Sports Bras</a>
+            <a href="shop.html?category=Women&sub=Leggings">Leggings & Shorts</a>
+            <a href="shop.html?category=Women&sub=Hoodies">Hoodies & Jackets</a>
+          </div>
+        </div>
+
+        <div class="nav-item">
+          <a href="shop.html?category=Kids">Kids</a>
+          <div class="dropdown">
+            <a href="shop.html?category=Kids&sub=Shoes">Shoes</a>
+            <a href="shop.html?category=Kids&sub=Boys">Boys Clothing</a>
+            <a href="shop.html?category=Kids&sub=Girls">Girls Clothing</a>
+          </div>
+        </div>
+
+        <div class="nav-item">
+          <a href="shop.html?category=Accessories">Accessories</a>
+          <div class="dropdown">
+            <a href="shop.html?category=Accessories&sub=Bags">Bags & Backpacks</a>
+            <a href="shop.html?category=Accessories&sub=Hats">Hats & Caps</a>
+            <a href="shop.html?category=Accessories&sub=Socks">Socks & Gear</a>
+          </div>
+        </div>
+
+        <div class="nav-item">
+          <a href="shop.html">Brands</a>
+          <div class="dropdown">
+            <a href="shop.html?brand=Nike">Nike</a>
+            <a href="shop.html?brand=Adidas">Adidas</a>
+            <a href="shop.html?brand=Puma">Puma</a>
+            <a href="shop.html?brand=Reebok">Reebok</a>
+            <a href="shop.html?brand=Under Armour">Under Armour</a>
+          </div>
+        </div>
+
+        <div class="nav-item">
+          <a href="track.html">Track Order</a>
+        </div>
+      </nav>
+
+      <form class="search" role="search" id="searchForm" autocomplete="off">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input type="search" id="searchInput" placeholder="Search shoes, apparel, brands..." aria-label="Search">
+        <div class="search-dropdown" id="searchDropdown" hidden></div>
+      </form>
+
+      <div class="actions">
+        <button class="icon-btn wishlist-btn" id="wishlistBtn" aria-label="Open wishlist">
+          <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+          <span class="bag-count" id="wishlistCount">0</span>
+        </button>
+        <button class="icon-btn" id="accountBtn" aria-label="Sign in or log in">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+        </button>
+        <button class="icon-btn bag-btn" id="bagBtn" aria-label="Open shopping bag">
+          <svg viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6L5 8z"/><path d="M9 8V6a3 3 0 016 0v2"/></svg>
+          <span class="bag-count" id="bagCount">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="section shop-page">
+    <div class="section__head">
+      <h2 id="shopHeading">All Products</h2>
+      <span class="line"></span>
+      <span class="shop-count" id="shopResultCount">0 items</span>
+    </div>
+
+    <div class="shop-layout">
+      <!-- SIDEBAR FILTERS -->
+      <aside class="shop-sidebar" aria-label="Product filters">
+        <div class="sidebar-top">
+          <h3>Filters</h3>
+          <button type="button" class="clear-filters-btn" id="clearFiltersBtn">Clear All</button>
+        </div>
+
+        <div class="filter-group">
+          <h4>Category</h4>
+          <div id="filterCategories" class="filter-options"></div>
+        </div>
+
+        <div class="filter-group">
+          <h4>Subcategory</h4>
+          <div id="filterSubcategories" class="filter-options"></div>
+        </div>
+
+        <div class="filter-group">
+          <h4>Brand</h4>
+          <div id="filterBrands" class="filter-options"></div>
+        </div>
+
+        <div class="filter-group">
+          <h4>Size</h4>
+          <div id="filterSizes" class="filter-size-grid"></div>
+        </div>
+
+        <div class="filter-group">
+          <h4>Max Price: <span id="maxPriceLabel">15000</span> EGP</h4>
+          <input type="range" id="filterMaxPrice" min="500" max="15000" step="250" value="15000" class="price-slider">
+        </div>
+      </aside>
+
+      <!-- PRODUCT GRID -->
+      <div class="shop-main">
+        <div class="shop-toolbar">
+          <button type="button" class="btn-small mobile-filter-toggle" id="mobileFilterToggle">Filter Products</button>
+          <div class="sort-wrap">
+            <label for="shopSort">Sort by:</label>
+            <select id="shopSort">
+              <option value="featured">Featured</option>
+              <option value="price-asc">Price: Low to High</option>
+              <option value="price-desc">Price: High to Low</option>
+              <option value="name-asc">Name: A–Z</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="product-grid" id="shopProductGrid"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- EXPANDED ATHLETIC FOOTER -->
+  <footer class="footer-expanded">
+    <div class="footer-grid">
+      <div class="footer-col">
+        <a href="index.html" class="footer-logo">
+          <strong>KYNETIX</strong><small>COLLECTIVE</small>
+        </a>
+        <p class="footer-tagline">Engineered for human potential. Curating authentic performance footwear, apparel, and athletic accessories across Egypt.</p>
+        <div class="footer-payment-badges">
+          <span class="pay-tag">VISA</span>
+          <span class="pay-tag">MASTERCARD</span>
+          <span class="pay-tag">MEEZA</span>
+          <span class="pay-tag">INSTAPAY</span>
+          <span class="pay-tag">CASH ON DELIVERY</span>
+        </div>
+      </div>
+
+      <div class="footer-col">
+        <h4>Shop Categories</h4>
+        <ul>
+          <li><a href="shop.html?category=Men">Men's Sportswear</a></li>
+          <li><a href="shop.html?category=Women">Women's Sportswear</a></li>
+          <li><a href="shop.html?category=Kids">Junior &amp; Kids</a></li>
+          <li><a href="shop.html?category=Accessories">Bags &amp; Gear</a></li>
+          <li><a href="shop.html">New Season Drops</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Customer Support</h4>
+        <ul>
+          <li><a href="track.html">Track Your Order</a></li>
+          <li><a href="faq.html">14-Day Free Returns</a></li>
+          <li><a href="faq.html#shipping">Shipping &amp; Delivery</a></li>
+          <li><a href="contact.html">Contact Us</a></li>
+          <li><a href="about.html">About The Collective</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>Cairo Flagship</h4>
+        <p>The British University in Egypt, Building A, El Sherouk City, Cairo, Egypt</p>
+        <p style="margin-top:8px;">Daily: 10:00 AM – 10:00 PM</p>
+        <p style="margin-top:8px;"><strong>Support:</strong> +20 100 892 4110</p>
+        <a href="https://wa.me/201008924110" target="_blank" class="footer-wa-btn">Chat on WhatsApp</a>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>&copy; <span id="year"></span> Kynetix Collective. All rights reserved. 100% Authentic Brand Guarantee.</p>
+    </div>
+  </footer>
+
+  <!-- BAG DRAWER (REUSABLE) -->
+  <div class="overlay" id="overlay"></div>
+  <aside class="drawer" id="bagDrawer" aria-hidden="true" aria-label="Shopping bag">
+    <div class="drawer__head">
+      <h3>Your Bag</h3>
+      <button class="icon-btn" id="closeBag" aria-label="Close bag">
+        <svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></svg>
+      </button>
+    </div>
+    <div class="drawer__body" id="bagItems"></div>
+    <div class="drawer__foot">
+      <div class="total"><span>Subtotal</span><strong id="bagTotal">0.00 EGP</strong></div>
+      <a href="checkout.html" class="btn btn--black btn--full" id="checkoutBtn" style="display:flex; justify-content:center; align-items:center; gap:8px;">
+        <span>Checkout Now</span>
+        <span style="font-size:18px;">&rarr;</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- WISHLIST DRAWER -->
+  <aside class="drawer drawer--wishlist" id="wishlistDrawer" aria-hidden="true" aria-label="Saved items">
+    <div class="drawer__head">
+      <h3>Your Wishlist</h3>
+      <button class="icon-btn" id="closeWishlist" aria-label="Close wishlist">
+        <svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></svg>
+      </button>
+    </div>
+    <div class="drawer__body" id="wishlistItems"></div>
+  </aside>
+
+  <!-- ACCOUNT MODAL -->
+  <div class="modal" id="authModal" aria-hidden="true" role="dialog" aria-label="Account">
+    <div class="modal__box">
+      <button class="icon-btn modal__close" id="closeAuth" aria-label="Close">
+        <svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></svg>
+      </button>
+      <div id="authGuestView">
+        <div class="tabs">
+          <button class="tab is-active" data-tab="login">Log In</button>
+          <button class="tab" data-tab="signup">Sign Up</button>
+        </div>
+        <form class="auth-form" id="loginForm">
+          <label>Email<input type="email" id="loginEmail" required placeholder="you@example.com"></label>
+          <label>Password<input type="password" id="loginPassword" required placeholder="••••••••"></label>
+          <button class="btn btn--black btn--full" type="submit">Log In</button>
+        </form>
+        <form class="auth-form" id="signupForm" hidden>
+          <label>Full name<input type="text" id="signupName" required placeholder="Your name"></label>
+          <label>Email<input type="email" id="signupEmail" required placeholder="you@example.com"></label>
+          <label>Password<input type="password" id="signupPassword" required minlength="6" placeholder="At least 6 characters"></label>
+          <button class="btn btn--black btn--full" type="submit">Create Account</button>
+        </form>
+      </div>
+
+      <div id="authUserDashboard" hidden>
+        <div class="user-dash-header">
+          <h3 id="userDashName">Karim Mansour</h3>
+          <p id="userDashEmail" style="color:var(--grey-600); font-size:13px;">karim@example.com</p>
+        </div>
+        <div class="user-dash-section">
+          <h4>Recent Orders</h4>
+          <div id="userDashOrders" class="user-dash-orders"></div>
+        </div>
+        <button type="button" class="btn btn--full" id="logoutBtn" style="margin-top:20px;">Log Out</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>

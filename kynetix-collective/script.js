@@ -4,9 +4,11 @@
 
   // Detect static hosting (e.g. GitHub Pages) where no local Node.js backend is running
   const IS_STATIC_HOST = /\.github\.io$/i.test(window.location.hostname);
+  const IS_LOCAL_HOST = /^(localhost|127\.0\.0\.1|192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.)/i.test(window.location.hostname);
 
-  // Backend API URL (auto-detects if running via Node server port 3000 or XAMPP Apache port 80 across all devices)
-  const API_BASE = window.location.port === '3000'
+  // Backend API URL: same-origin '/api' on Node (port 3000) or cloud hosts (Render/Railway),
+  // or ':3000/api' when accessed locally via XAMPP Apache on port 80
+  const API_BASE = (!IS_LOCAL_HOST || window.location.port === '3000')
     ? '/api'
     : `${window.location.protocol}//${window.location.hostname}:3000/api`;
 

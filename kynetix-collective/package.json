@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "build": "node -e \"const fs=require('fs'),p=require('path');fs.mkdirSync('public',{recursive:true});for(const f of fs.readdirSync('.'))if(f.endsWith('.html')||f==='style.css'||f==='script.js')fs.copyFileSync(f,p.join('public',f));fs.cpSync('images','public/images',{recursive:true});\""
   },
   "keywords": [
     "kynetix",

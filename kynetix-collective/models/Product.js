@@ -67,7 +67,7 @@ class Product {
       params.push(q, q, q, q, q);
     }
 
-    sql += ' GROUP BY p.id';
+    sql += ' GROUP BY p.id, p.slug, p.name, p.description, p.price, p.is_active, p.created_at, c.name, c.slug, s.name, b.name, b.slug';
 
     // Sorting
     if (sort === 'price-asc') {

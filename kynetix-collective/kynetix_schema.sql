@@ -661,7 +661,7 @@ INSERT INTO `coupons` (`code`, `discount_type`, `discount_value`, `label`, `min_
 
 -- H. Sample Users (Admin and Customer)
 INSERT INTO `users` (`id`, `email`, `password_hash`, `first_name`, `last_name`, `phone`, `role`) VALUES
-(1, 'admin@kynetix.eg', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Admin', 'Kynetix', '+20 100 123 4567', 'admin'),
+(1, 'admin@kynetix.eg', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Admin', 'Kynetix', '+20 114 075 3312', 'admin'),
 (2, 'athlete@cairo.eg', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Karim', 'Nour', '+20 101 234 5678', 'customer');
 
 -- I. Customer Default Address

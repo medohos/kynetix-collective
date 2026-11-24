@@ -286,6 +286,8 @@ class Product {
         originalId,
         name,
         price,
+        oldPrice,
+        isNew,
         desc = '',
         category = 'Men',
         sub = 'Shoes',
@@ -351,17 +353,28 @@ class Product {
       let productId;
       if (prodRows.length) {
         productId = prodRows[0].id;
-        await conn.query(
-          `UPDATE products 
-           SET slug = ?, category_id = ?, subcategory_id = ?, brand_id = ?, name = ?, description = ?, price = ?, is_active = 1 
-           WHERE id = ?`,
-          [productSlug, categoryId, subcategoryId, brandId, name, desc, Number(price), productId]
-        );
+        const setParts = [
+          'slug = ?', 'category_id = ?', 'subcategory_id = ?', 'brand_id = ?',
+          'name = ?', 'description = ?', 'price = ?', 'is_active = 1'
+        ];
+        const updateParams = [productSlug, categoryId, subcategoryId, brandId, name, desc, Number(price)];
+        if (oldPrice !== undefined) {
+          setParts.push('old_price = ?');
+          updateParams.push(oldPrice !== null && oldPrice !== '' ? Number(oldPrice) : null);
+        }
+        if (isNew !== undefined) {
+          setParts.push('is_new = ?');
+          updateParams.push(isNew ? 1 : 0);
+        }
+        updateParams.push(productId);
+        await conn.query(`UPDATE products SET ${setParts.join(', ')} WHERE id = ?`, updateParams);
       } else {
+        const initOldPrice = oldPrice !== undefined && oldPrice !== null && oldPrice !== '' ? Number(oldPrice) : null;
+        const initIsNew = isNew !== undefined ? (isNew ? 1 : 0) : 1;
         const [prodIns] = await conn.query(
-          `INSERT INTO products (slug, category_id, subcategory_id, brand_id, name, description, price, is_active) 
-           VALUES (?, ?, ?, ?, ?, ?, ?, 1)`,
-          [productSlug, categoryId, subcategoryId, brandId, name, desc, Number(price)]
+          `INSERT INTO products (slug, category_id, subcategory_id, brand_id, name, description, price, old_price, is_new, is_active) 
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`,
+          [productSlug, categoryId, subcategoryId, brandId, name, desc, Number(price), initOldPrice, initIsNew]
         );
         productId = prodIns.insertId;
       }

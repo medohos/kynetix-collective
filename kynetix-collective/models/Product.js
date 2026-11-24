@@ -12,6 +12,8 @@ class Product {
         p.name,
         p.description,
         p.price,
+        p.old_price,
+        p.is_new,
         p.is_active,
         p.created_at,
         c.name AS category,
@@ -67,7 +69,7 @@ class Product {
       params.push(q, q, q, q, q);
     }
 
-    sql += ' GROUP BY p.id, p.slug, p.name, p.description, p.price, p.is_active, p.created_at, c.name, c.slug, s.name, b.name, b.slug';
+    sql += ' GROUP BY p.id, p.slug, p.name, p.description, p.price, p.old_price, p.is_new, p.is_active, p.created_at, c.name, c.slug, s.name, b.name, b.slug';
 
     // Sorting
     if (sort === 'price-asc') {
@@ -133,6 +135,8 @@ class Product {
       sub: p.subcategory,
       desc: p.description,
       price: Number(p.price),
+      oldPrice: p.old_price != null ? Number(p.old_price) : null,
+      isNew: !!p.is_new,
       total_stock: Number(p.total_stock),
       colors: colorsByProduct[p.id] || [],
       sizes: sizesByProduct[p.id] ? [...sizesByProduct[p.id]] : [],
@@ -154,6 +158,8 @@ class Product {
         p.name,
         p.description,
         p.price,
+        p.old_price,
+        p.is_new,
         p.is_active,
         c.name AS category,
         s.name AS subcategory,
@@ -213,6 +219,8 @@ class Product {
       sub: product.subcategory,
       desc: product.description,
       price: Number(product.price),
+      oldPrice: product.old_price != null ? Number(product.old_price) : null,
+      isNew: !!product.is_new,
       sizes,
       colors: colors.map((c) => ({
         id: c.id,

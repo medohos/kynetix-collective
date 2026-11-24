@@ -12,7 +12,7 @@
 </head>
 <body>
 
-  <div class="announce">Free shipping on orders over 1000 EGP &nbsp;|&nbsp; New season drops every week</div>
+  <div class="announce">Free shipping over 1000 EGP &nbsp;&middot;&nbsp; 14-day free returns &nbsp;&middot;&nbsp; Cash on delivery</div>
 
   <!-- HEADER -->
   <header class="header">
@@ -30,6 +30,10 @@
       </a>
 
       <nav class="nav" id="nav" aria-label="Main">
+        <div class="nav-item">
+          <a href="shop.html?filter=new" class="nav-new">New</a>
+        </div>
+
         <div class="nav-item">
           <a href="shop.html?category=Men">Men</a>
           <div class="dropdown">
@@ -80,6 +84,11 @@
         </div>
 
         <div class="nav-item">
+          <a href="shop.html?filter=sale" class="nav-sale">Sale</a>
+        </div>
+
+
+        <div class="nav-item">
           <a href="track.html">Track Order</a>
         </div>
       </nav>
@@ -109,13 +118,16 @@
   <main>
     <!-- HERO -->
     <section class="hero" id="hero">
-      <img class="hero__img" src="images/hero-shoe.jpg" alt="Colorful running shoe" id="heroImg">
+      <img class="hero__img hero__img--runner" src="images/hero-runner.jpg" alt="Runner sprinting on a track at sunset" id="heroImg">
       <div class="hero__overlay"></div>
       <div class="hero__content">
-        <p class="eyebrow">New Season &bull; Running</p>
-        <h1>Move Faster.<br>Look Sharper.</h1>
+        <p class="eyebrow">New Season &middot; Running</p>
+        <h1>Move <em>Faster.</em><br>Look Sharper.</h1>
         <p class="hero__sub">The world's top performance brands, all in one place.</p>
-        <a href="shop.html" class="btn btn--white">Shop Now</a>
+        <div class="hero__actions">
+          <a href="shop.html?filter=new" class="btn btn--lime">Shop New Arrivals <span aria-hidden="true">&rarr;</span></a>
+          <a href="#brands" class="btn btn--ghost">Shop by Brand</a>
+        </div>
       </div>
     </section>
 
@@ -146,10 +158,33 @@
       </div>
     </section>
 
+
+    <!-- NEW ARRIVALS -->
+    <section class="section section--rail" id="new-arrivals">
+      <div class="section__head">
+        <h2>New Arrivals</h2>
+        <span class="line"></span>
+        <a href="shop.html?filter=new" class="view-all">View all <span aria-hidden="true">&rarr;</span></a>
+      </div>
+      <div class="product-grid rail-grid" id="newArrivalsGrid"></div>
+    </section>
+
+    <!-- DISCOUNTS -->
+    <section class="sale-band" id="discounts">
+      <div class="sale-band__inner">
+        <div class="sale-band__head">
+          <p class="eyebrow">Limited time &middot; While stocks last</p>
+          <h2>Discounts <em>up to <span id="saleMaxPercent">40</span>% off</em></h2>
+          <a href="shop.html?filter=sale" class="btn btn--lime">Shop the Sale <span aria-hidden="true">&rarr;</span></a>
+        </div>
+        <div class="product-grid rail-grid" id="saleGrid"></div>
+      </div>
+    </section>
+
     <!-- BRANDS -->
     <section class="brands" id="brands">
       <div class="brands__inner">
-        <h2>Brands We Carry</h2>
+        <p class="eyebrow eyebrow--lime">Brands we carry</p>
         <ul>
           <li><a href="shop.html?brand=Nike">Nike</a></li>
           <li><a href="shop.html?brand=Adidas">Adidas</a></li>
@@ -157,6 +192,28 @@
           <li><a href="shop.html?brand=Reebok">Reebok</a></li>
           <li><a href="shop.html?brand=Under Armour">Under Armour</a></li>
         </ul>
+      </div>
+    </section>
+
+    <!-- TRUST STRIP -->
+    <section class="trust-strip" aria-label="Why shop with us">
+      <div class="trust-strip__inner">
+        <div class="trust-item">
+          <span class="trust-item__icon"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-3 7.8-7 9-4-1.2-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg></span>
+          <div><strong>100% Authentic</strong><p>Direct brand authorization and original box</p></div>
+        </div>
+        <div class="trust-item">
+          <span class="trust-item__icon"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 00-14.3-4.9L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0014.3 4.9L20 16"/><path d="M20 20v-4h-4"/></svg></span>
+          <div><strong>14-Day Free Exchanges</strong><p>Doorstep sizing swap across Egypt</p></div>
+        </div>
+        <div class="trust-item">
+          <span class="trust-item__icon"><svg viewBox="0 0 24 24"><path d="M3 6h11v10H3z"/><path d="M14 9h4l3 3v4h-7"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg></span>
+          <div><strong>Fast Cairo Dispatch</strong><p>Delivery within 24&ndash;48 hours in Cairo and Giza</p></div>
+        </div>
+        <div class="trust-item">
+          <span class="trust-item__icon"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="1"/><circle cx="12" cy="12" r="2.5"/></svg></span>
+          <div><strong>Cash on Delivery</strong><p>Also Visa, Mastercard, Meeza and InstaPay</p></div>
+        </div>
       </div>
     </section>
   </main>
@@ -185,7 +242,8 @@
           <li><a href="shop.html?category=Women">Women's Sportswear</a></li>
           <li><a href="shop.html?category=Kids">Junior &amp; Kids</a></li>
           <li><a href="shop.html?category=Accessories">Bags &amp; Gear</a></li>
-          <li><a href="shop.html">New Season Drops</a></li>
+          <li><a href="shop.html?filter=new">New Arrivals</a></li>
+          <li><a href="shop.html?filter=sale">Discounts</a></li>
         </ul>
       </div>
 

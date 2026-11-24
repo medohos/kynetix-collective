@@ -5,7 +5,7 @@
   // Production Express + TiDB Cloud API hosted on Vercel (used by GitHub Pages too via CORS)
   const PROD_API_URL = 'https://kynetix-collective.vercel.app/api';
   const IS_STATIC_HOST = /\.github\.io$/i.test(window.location.hostname);
-  const IS_LOCAL_HOST = /^(localhost|127\.0\.0\.1|192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.)/i.test(window.location.hostname);
+  const IS_LOCAL_HOST = /^(localhost|127\.0\.0\.1|\[::1\]|192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.)/i.test(window.location.hostname);
 
   // Backend API URL:
   // - GitHub Pages (*.github.io) -> live Vercel API (with CORS)
@@ -27,11 +27,14 @@
   }
 
   async function apiFetch(endpoint, options = {}) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 12000);
     try {
       const token = getAuthToken();
       const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
       const res = await fetch(`${API_BASE}${endpoint}`, {
         ...options,
+        signal: controller.signal,
         headers: {
           'Content-Type': 'application/json',
           ...authHeaders,
@@ -42,11 +45,39 @@
       return { ok: res.ok, data, error: !res.ok ? (data.message || 'Server error') : null };
     } catch (err) {
       return { ok: false, data: null, error: err.message, networkError: true };
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  // Shows a spinner + label on a submit button while a request runs
+  function setButtonLoading(btn, loading, label) {
+    if (!btn) return;
+    if (loading) {
+      btn.dataset.label = btn.innerHTML;
+      btn.disabled = true;
+      btn.classList.add('is-loading');
+      btn.innerHTML = `<span class="btn-spinner" aria-hidden="true"></span>${label}`;
+    } else {
+      btn.disabled = false;
+      btn.classList.remove('is-loading');
+      if (btn.dataset.label) btn.innerHTML = btn.dataset.label;
     }
   }
 
   function formatEGP(amount) {
     return `${Number(amount).toFixed(2)} EGP`;
+  }
+
+  // ---------- Sale helpers ----------
+  function isOnSale(p) {
+    return !!p && Number(p.oldPrice) > Number(p.price);
+  }
+  function discountPercent(p) {
+    return isOnSale(p) ? Math.round((1 - Number(p.price) / Number(p.oldPrice)) * 100) : 0;
+  }
+  function formatEGPPrefix(amount) {
+    return `EGP ${Number(amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
 
   function variantKey(colorName, size) {
@@ -130,967 +161,1875 @@
 
   // ---------- Shared Product Storage (Mirrors MySQL Database) ----------
   const DEFAULT_PRODUCTS = {
-  "ua-performance-no-show-socks": {
-    "category": "Accessories",
-    "sub": "Socks",
-    "brand": "Under Armour",
-    "name": "HeatGear Performance No-Show Socks (3 Pairs)",
-    "price": 750,
-    "desc": "Seamless toe construction and embedded arch support reduces foot fatigue. Anti-odor technology prevents the growth of odor-causing microbes.",
-    "sizes": [
-      "M (38-42)",
-      "L (42-46)"
-    ],
-    "colors": [
-      {
-        "name": "Black Heather",
-        "hex": "#262626",
-        "img": "images/heatgear-noshow-black.png"
+    "nike-tech-fleece-kids-hoodie": {
+      "category": "Kids",
+      "sub": "Boys",
+      "brand": "Nike",
+      "name": "Sportswear Tech Fleece Kids Full-Zip Hoodie",
+      "price": 4950,
+      "isNew": true,
+      "desc": "Lightweight Tech Fleece warmth with a streamlined fit, zip chest pocket and bonded seams for school runs and weekend training.",
+      "sizes": [
+        "S (8-10)",
+        "M (10-12)",
+        "L (12-14)",
+        "XL (14-16)"
+      ],
+      "colors": [
+        {
+          "name": "Burgundy Crush",
+          "hex": "#6b2e2a",
+          "img": "images/products/nike-tech-fleece-kids-hoodie.webp"
+        }
+      ],
+      "variantStock": {
+        "Burgundy Crush::S (8-10)": 6,
+        "Burgundy Crush::M (10-12)": 11,
+        "Burgundy Crush::L (12-14)": 16,
+        "Burgundy Crush::XL (14-16)": 7
+      }
+    },
+    "nike-tech-fleece-kids-joggers": {
+      "category": "Kids",
+      "sub": "Boys",
+      "brand": "Nike",
+      "name": "Sportswear Tech Fleece Kids Joggers",
+      "price": 4250,
+      "isNew": true,
+      "desc": "Tapered Tech Fleece joggers with ribbed cuffs and a zip side pocket. Warm without the bulk.",
+      "sizes": [
+        "S (8-10)",
+        "M (10-12)",
+        "L (12-14)",
+        "XL (14-16)"
+      ],
+      "colors": [
+        {
+          "name": "Burgundy Crush",
+          "hex": "#6b2e2a",
+          "img": "images/products/nike-tech-fleece-kids-joggers.webp"
+        }
+      ],
+      "variantStock": {
+        "Burgundy Crush::S (8-10)": 13,
+        "Burgundy Crush::M (10-12)": 18,
+        "Burgundy Crush::L (12-14)": 9,
+        "Burgundy Crush::XL (14-16)": 14
+      }
+    },
+    "nike-solo-swoosh-kids-hoodie": {
+      "category": "Kids",
+      "sub": "Boys",
+      "brand": "Nike",
+      "name": "Solo Swoosh Kids Fleece Pullover Hoodie",
+      "price": 2950,
+      "isNew": true,
+      "desc": "Brushed-back fleece hoodie with a clean embroidered Swoosh and a roomy kangaroo pocket.",
+      "sizes": [
+        "S (8-10)",
+        "M (10-12)",
+        "L (12-14)",
+        "XL (14-16)"
+      ],
+      "colors": [
+        {
+          "name": "Vintage Green",
+          "hex": "#3f5a43",
+          "img": "images/products/nike-solo-swoosh-kids-hoodie.webp"
+        }
+      ],
+      "variantStock": {
+        "Vintage Green::S (8-10)": 6,
+        "Vintage Green::M (10-12)": 11,
+        "Vintage Green::L (12-14)": 16,
+        "Vintage Green::XL (14-16)": 7
+      }
+    },
+    "nike-adp-kids-puffer": {
+      "category": "Kids",
+      "sub": "Boys",
+      "brand": "Nike",
+      "name": "All Day Play Therma-FIT Kids Puffer Jacket",
+      "price": 4650,
+      "isNew": true,
+      "desc": "Loose-fit puffer with Therma-FIT insulation that traps body heat on cold winter mornings.",
+      "sizes": [
+        "S (8-10)",
+        "M (10-12)",
+        "L (12-14)",
+        "XL (14-16)"
+      ],
+      "colors": [
+        {
+          "name": "Black",
+          "hex": "#111111",
+          "img": "images/products/nike-adp-kids-puffer.webp"
+        }
+      ],
+      "variantStock": {
+        "Black::S (8-10)": 13,
+        "Black::M (10-12)": 18,
+        "Black::L (12-14)": 9,
+        "Black::XL (14-16)": 14
+      }
+    },
+    "adidas-firebird-dot-kids-jacket": {
+      "category": "Kids",
+      "sub": "Boys",
+      "brand": "Adidas",
+      "name": "Firebird Dot Print Kids Track Jacket",
+      "price": 2950,
+      "isNew": true,
+      "desc": "The classic Firebird track jacket in an all-over dot print, with a full zip and ribbed cuffs.",
+      "sizes": [
+        "S (8-10)",
+        "M (10-12)",
+        "L (12-14)",
+        "XL (14-16)"
+      ],
+      "colors": [
+        {
+          "name": "Grey",
+          "hex": "#9a9a9a",
+          "img": "images/products/adidas-firebird-dot-kids-jacket.webp"
+        }
+      ],
+      "variantStock": {
+        "Grey::S (8-10)": 6,
+        "Grey::M (10-12)": 11,
+        "Grey::L (12-14)": 16,
+        "Grey::XL (14-16)": 7
+      }
+    },
+    "nike-studio-girls-oversized-hoodie": {
+      "category": "Kids",
+      "sub": "Girls",
+      "brand": "Nike",
+      "name": "Sportswear Studio Girls Oversized Fleece Hoodie",
+      "price": 2700,
+      "isNew": true,
+      "desc": "Soft oversized fleece hoodie with dropped shoulders for a relaxed, cozy fit.",
+      "sizes": [
+        "S (8-10)",
+        "M (10-12)",
+        "L (12-14)",
+        "XL (14-16)"
+      ],
+      "colors": [
+        {
+          "name": "Coconut Milk",
+          "hex": "#efe8d6",
+          "img": "images/products/nike-studio-girls-oversized-hoodie.webp"
+        }
+      ],
+      "variantStock": {
+        "Coconut Milk::S (8-10)": 13,
+        "Coconut Milk::M (10-12)": 18,
+        "Coconut Milk::L (12-14)": 9,
+        "Coconut Milk::XL (14-16)": 14
+      }
+    },
+    "nike-studio-girls-open-hem-pants": {
+      "category": "Kids",
+      "sub": "Girls",
+      "brand": "Nike",
+      "name": "Sportswear Studio Girls Fleece Open-Hem Pants",
+      "price": 2450,
+      "isNew": true,
+      "desc": "Matching open-hem fleece pants with an easy elastic waistband.",
+      "sizes": [
+        "S (8-10)",
+        "M (10-12)",
+        "L (12-14)",
+        "XL (14-16)"
+      ],
+      "colors": [
+        {
+          "name": "Coconut Milk",
+          "hex": "#efe8d6",
+          "img": "images/products/nike-studio-girls-open-hem-pants.webp"
+        }
+      ],
+      "variantStock": {
+        "Coconut Milk::S (8-10)": 6,
+        "Coconut Milk::M (10-12)": 11,
+        "Coconut Milk::L (12-14)": 16,
+        "Coconut Milk::XL (14-16)": 7
+      }
+    },
+    "nike-pro-girls-fz-hoodie": {
+      "category": "Kids",
+      "sub": "Girls",
+      "brand": "Nike",
+      "name": "Nike Pro Girls Dri-FIT Full-Zip Hoodie",
+      "price": 2550,
+      "isNew": true,
+      "desc": "Sweat-wicking Dri-FIT fleece hoodie for training sessions and warm-ups.",
+      "sizes": [
+        "S (8-10)",
+        "M (10-12)",
+        "L (12-14)",
+        "XL (14-16)"
+      ],
+      "colors": [
+        {
+          "name": "Burgundy Crush",
+          "hex": "#6b2e2a",
+          "img": "images/products/nike-pro-girls-fz-hoodie.webp"
+        }
+      ],
+      "variantStock": {
+        "Burgundy Crush::S (8-10)": 13,
+        "Burgundy Crush::M (10-12)": 18,
+        "Burgundy Crush::L (12-14)": 9,
+        "Burgundy Crush::XL (14-16)": 14
+      }
+    },
+    "nike-girls-cropped-tee": {
+      "category": "Kids",
+      "sub": "Girls",
+      "brand": "Nike",
+      "name": "Sportswear Girls Cropped T-Shirt",
+      "price": 1450,
+      "isNew": true,
+      "desc": "Soft cotton cropped tee with a modern boxy fit.",
+      "sizes": [
+        "S (8-10)",
+        "M (10-12)",
+        "L (12-14)",
+        "XL (14-16)"
+      ],
+      "colors": [
+        {
+          "name": "White",
+          "hex": "#ffffff",
+          "img": "images/products/nike-girls-cropped-tee.webp"
+        }
+      ],
+      "variantStock": {
+        "White::S (8-10)": 6,
+        "White::M (10-12)": 11,
+        "White::L (12-14)": 16,
+        "White::XL (14-16)": 7
+      }
+    },
+    "adidas-firebird-dot-kids-set": {
+      "category": "Kids",
+      "sub": "Girls",
+      "brand": "Adidas",
+      "name": "Firebird Dot Print Jacket & Wide Leg Pant Set",
+      "price": 3200,
+      "isNew": true,
+      "desc": "Two-piece Firebird set: dot-print track jacket with matching wide-leg pants.",
+      "sizes": [
+        "S (8-10)",
+        "M (10-12)",
+        "L (12-14)",
+        "XL (14-16)"
+      ],
+      "colors": [
+        {
+          "name": "Burgundy",
+          "hex": "#6d1f2f",
+          "img": "images/products/adidas-firebird-dot-kids-set.webp"
+        }
+      ],
+      "variantStock": {
+        "Burgundy::S (8-10)": 13,
+        "Burgundy::M (10-12)": 18,
+        "Burgundy::L (12-14)": 9,
+        "Burgundy::XL (14-16)": 14
+      }
+    },
+    "nike-dunk-low-kids": {
+      "category": "Kids",
+      "sub": "Shoes",
+      "brand": "Nike",
+      "name": "Dunk Low Big Kids Shoes",
+      "price": 4450,
+      "isNew": true,
+      "desc": "The 80s basketball icon with a padded low-cut collar and durable leather overlays.",
+      "sizes": [
+        "33",
+        "34",
+        "35",
+        "36",
+        "37",
+        "38"
+      ],
+      "colors": [
+        {
+          "name": "White / Black",
+          "hex": "#f2f2f2",
+          "img": "images/products/nike-dunk-low-kids.webp"
+        }
+      ],
+      "variantStock": {
+        "White / Black::33": 6,
+        "White / Black::34": 11,
+        "White / Black::35": 16,
+        "White / Black::36": 7,
+        "White / Black::37": 12,
+        "White / Black::38": 17
+      }
+    },
+    "nike-air-force-1-le-kids": {
+      "category": "Kids",
+      "sub": "Shoes",
+      "brand": "Nike",
+      "name": "Air Force 1 LE Big Kids Shoes",
+      "price": 4400,
+      "isNew": true,
+      "desc": "Crisp leather, Nike Air cushioning and the timeless AF1 silhouette, sized for kids.",
+      "sizes": [
+        "33",
+        "34",
+        "35",
+        "36",
+        "37",
+        "38"
+      ],
+      "colors": [
+        {
+          "name": "Triple White",
+          "hex": "#ffffff",
+          "img": "images/products/nike-air-force-1-le-kids.webp"
+        }
+      ],
+      "variantStock": {
+        "Triple White::33": 13,
+        "Triple White::34": 18,
+        "Triple White::35": 9,
+        "Triple White::36": 14,
+        "Triple White::37": 19,
+        "Triple White::38": 10
+      }
+    },
+    "adidas-samba-jane-kids": {
+      "category": "Kids",
+      "sub": "Shoes",
+      "brand": "Adidas",
+      "name": "Samba Jane Kids Shoes",
+      "price": 3450,
+      "isNew": true,
+      "desc": "The Samba reimagined as a Mary Jane with a hook-and-loop strap and gum outsole.",
+      "sizes": [
+        "33",
+        "34",
+        "35",
+        "36",
+        "37",
+        "38"
+      ],
+      "colors": [
+        {
+          "name": "Red",
+          "hex": "#c8102e",
+          "img": "images/products/adidas-samba-jane-kids.webp"
+        }
+      ],
+      "variantStock": {
+        "Red::33": 6,
+        "Red::34": 11,
+        "Red::35": 16,
+        "Red::36": 7,
+        "Red::37": 12,
+        "Red::38": 17
+      }
+    },
+    "adidas-anthony-edwards-3-junior": {
+      "category": "Kids",
+      "sub": "Shoes",
+      "brand": "Adidas",
+      "name": "Anthony Edwards 3 Junior Basketball Shoes",
+      "price": 4950,
+      "isNew": true,
+      "desc": "Ant Edwards signature hoops shoe with responsive cushioning and multidirectional grip.",
+      "sizes": [
+        "33",
+        "34",
+        "35",
+        "36",
+        "37",
+        "38"
+      ],
+      "colors": [
+        {
+          "name": "Orange",
+          "hex": "#f26b1d",
+          "img": "images/products/adidas-anthony-edwards-3-junior.webp"
+        }
+      ],
+      "variantStock": {
+        "Orange::33": 13,
+        "Orange::34": 18,
+        "Orange::35": 9,
+        "Orange::36": 14,
+        "Orange::37": 19,
+        "Orange::38": 10
+      }
+    },
+    "adidas-vl-court-3-kids": {
+      "category": "Kids",
+      "sub": "Shoes",
+      "brand": "Adidas",
+      "name": "VL Court 3.0 Kids Shoes",
+      "price": 2950,
+      "isNew": true,
+      "desc": "Skate-inspired suede trainers with a cushioned insole for all-day comfort.",
+      "sizes": [
+        "33",
+        "34",
+        "35",
+        "36",
+        "37",
+        "38"
+      ],
+      "colors": [
+        {
+          "name": "Core Black",
+          "hex": "#111111",
+          "img": "images/products/adidas-vl-court-3-kids.webp"
+        }
+      ],
+      "variantStock": {
+        "Core Black::33": 6,
+        "Core Black::34": 11,
+        "Core Black::35": 16,
+        "Core Black::36": 7,
+        "Core Black::37": 12,
+        "Core Black::38": 17
+      }
+    },
+    "puma-speedcat-og-kids": {
+      "category": "Kids",
+      "sub": "Shoes",
+      "brand": "Puma",
+      "name": "Speedcat OG Big Kids Sneakers",
+      "price": 3950,
+      "isNew": true,
+      "desc": "Motorsport heritage in a slim suede profile with the iconic Formstrip.",
+      "sizes": [
+        "33",
+        "34",
+        "35",
+        "36",
+        "37",
+        "38"
+      ],
+      "colors": [
+        {
+          "name": "Inky Depths / Warm White",
+          "hex": "#1d2a44",
+          "img": "images/products/puma-speedcat-og-kids.webp"
+        }
+      ],
+      "variantStock": {
+        "Inky Depths / Warm White::33": 13,
+        "Inky Depths / Warm White::34": 18,
+        "Inky Depths / Warm White::35": 9,
+        "Inky Depths / Warm White::36": 14,
+        "Inky Depths / Warm White::37": 19,
+        "Inky Depths / Warm White::38": 10
+      }
+    },
+    "puma-electrify-nitro-5-kids": {
+      "category": "Kids",
+      "sub": "Shoes",
+      "brand": "Puma",
+      "name": "Electrify NITRO 5 Big Kids Running Shoes",
+      "price": 3650,
+      "isNew": true,
+      "desc": "NITRO foam cushioning in a lightweight runner built for sports day and the playground.",
+      "sizes": [
+        "33",
+        "34",
+        "35",
+        "36",
+        "37",
+        "38"
+      ],
+      "colors": [
+        {
+          "name": "Sunny Lime / Black",
+          "hex": "#c9f031",
+          "img": "images/products/puma-electrify-nitro-5-kids.webp"
+        }
+      ],
+      "variantStock": {
+        "Sunny Lime / Black::33": 6,
+        "Sunny Lime / Black::34": 11,
+        "Sunny Lime / Black::35": 16,
+        "Sunny Lime / Black::36": 7,
+        "Sunny Lime / Black::37": 12,
+        "Sunny Lime / Black::38": 17
+      }
+    },
+    "puma-mb06-hills-kids": {
+      "category": "Kids",
+      "sub": "Shoes",
+      "brand": "Puma",
+      "name": "MB.06 Hills Big Kids Basketball Shoes",
+      "price": 5400,
+      "isNew": true,
+      "desc": "LaMelo Ball signature model with NITRO cushioning and a supportive high-traction outsole.",
+      "sizes": [
+        "33",
+        "34",
+        "35",
+        "36",
+        "37",
+        "38"
+      ],
+      "colors": [
+        {
+          "name": "Cool Mid Gray / Lime Smash",
+          "hex": "#9aa0a6",
+          "img": "images/products/puma-mb06-hills-kids.webp"
+        }
+      ],
+      "variantStock": {
+        "Cool Mid Gray / Lime Smash::33": 13,
+        "Cool Mid Gray / Lime Smash::34": 18,
+        "Cool Mid Gray / Lime Smash::35": 9,
+        "Cool Mid Gray / Lime Smash::36": 14,
+        "Cool Mid Gray / Lime Smash::37": 19,
+        "Cool Mid Gray / Lime Smash::38": 10
+      }
+    },
+    "nike-air-max-metro": {
+      "category": "Men",
+      "sub": "Shoes",
+      "brand": "Nike",
+      "name": "Air Max Metro",
+      "price": 6400,
+      "isNew": true,
+      "desc": "Visible Air cushioning and a sleek layered upper made for city miles.",
+      "sizes": [
+        "41",
+        "42",
+        "43",
+        "44",
+        "45"
+      ],
+      "colors": [
+        {
+          "name": "White / University Red / Black",
+          "hex": "#f2f2f2",
+          "img": "images/products/nike-air-max-metro.webp"
+        }
+      ],
+      "variantStock": {
+        "White / University Red / Black::41": 6,
+        "White / University Red / Black::42": 11,
+        "White / University Red / Black::43": 16,
+        "White / University Red / Black::44": 7,
+        "White / University Red / Black::45": 12
+      }
+    },
+    "air-jordan-1-low": {
+      "category": "Men",
+      "sub": "Shoes",
+      "brand": "Nike",
+      "name": "Air Jordan 1 Low",
+      "price": 5850,
+      "isNew": true,
+      "desc": "The AJ1 in a low-cut build with encapsulated Air and premium leather.",
+      "sizes": [
+        "41",
+        "42",
+        "43",
+        "44",
+        "45"
+      ],
+      "colors": [
+        {
+          "name": "White / Midnight Navy",
+          "hex": "#f2f2f2",
+          "img": "images/products/air-jordan-1-low.webp"
+        }
+      ],
+      "variantStock": {
+        "White / Midnight Navy::41": 13,
+        "White / Midnight Navy::42": 18,
+        "White / Midnight Navy::43": 9,
+        "White / Midnight Navy::44": 14,
+        "White / Midnight Navy::45": 19
+      }
+    },
+    "nike-standard-issue-hoodie": {
+      "category": "Men",
+      "sub": "Hoodies",
+      "brand": "Nike",
+      "name": "Standard Issue Dri-FIT Basketball Hoodie",
+      "price": 5800,
+      "isNew": true,
+      "desc": "Stretchy Dri-FIT fleece hoodie for warm-ups and courtside chill.",
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "colors": [
+        {
+          "name": "Sail",
+          "hex": "#efe9dc",
+          "img": "images/products/nike-standard-issue-hoodie.webp"
+        }
+      ],
+      "variantStock": {
+        "Sail::S": 6,
+        "Sail::M": 11,
+        "Sail::L": 16,
+        "Sail::XL": 7
+      }
+    },
+    "nike-standard-issue-pants": {
+      "category": "Men",
+      "sub": "Pants",
+      "brand": "Nike",
+      "name": "Standard Issue Dri-FIT Basketball Pants",
+      "price": 4950,
+      "isNew": true,
+      "desc": "Open-hem Dri-FIT pants that move with you on and off the court.",
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "colors": [
+        {
+          "name": "Sail",
+          "hex": "#efe9dc",
+          "img": "images/products/nike-standard-issue-pants.webp"
+        }
+      ],
+      "variantStock": {
+        "Sail::S": 13,
+        "Sail::M": 18,
+        "Sail::L": 9,
+        "Sail::XL": 14
+      }
+    },
+    "nike-acg-wolf-tree-jacket": {
+      "category": "Men",
+      "sub": "Hoodies",
+      "brand": "Nike",
+      "name": "ACG Wolf Tree Full-Zip Printed Jacket",
+      "price": 6900,
+      "isNew": true,
+      "desc": "Outdoor-ready ACG fleece jacket with an all-over printed pattern.",
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "colors": [
+        {
+          "name": "Printed Burgundy",
+          "hex": "#5a2a24",
+          "img": "images/products/nike-acg-wolf-tree-jacket.webp"
+        }
+      ],
+      "variantStock": {
+        "Printed Burgundy::S": 6,
+        "Printed Burgundy::M": 11,
+        "Printed Burgundy::L": 16,
+        "Printed Burgundy::XL": 7
+      }
+    },
+    "nike-total-90-women": {
+      "category": "Women",
+      "sub": "Shoes",
+      "brand": "Nike",
+      "name": "Total 90 Women's Shoes",
+      "price": 6150,
+      "isNew": true,
+      "desc": "Football-terrace style from the T90 archive, rebuilt as an everyday lifestyle shoe.",
+      "sizes": [
+        "37",
+        "38",
+        "39",
+        "40",
+        "41"
+      ],
+      "colors": [
+        {
+          "name": "Burgundy Crush",
+          "hex": "#5b2027",
+          "img": "images/products/nike-total-90-women.webp"
+        }
+      ],
+      "variantStock": {
+        "Burgundy Crush::37": 13,
+        "Burgundy Crush::38": 18,
+        "Burgundy Crush::39": 9,
+        "Burgundy Crush::40": 14,
+        "Burgundy Crush::41": 19
+      }
+    },
+    "nike-air-superfly-shift": {
+      "category": "Women",
+      "sub": "Shoes",
+      "brand": "Nike",
+      "name": "Air Superfly Shift Women's Shoes",
+      "price": 4950,
+      "isNew": true,
+      "desc": "Retro runner lines with Air cushioning and a lightweight mesh upper.",
+      "sizes": [
+        "37",
+        "38",
+        "39",
+        "40",
+        "41"
+      ],
+      "colors": [
+        {
+          "name": "Light Bone",
+          "hex": "#d9d6cf",
+          "img": "images/products/nike-air-superfly-shift.webp"
+        }
+      ],
+      "variantStock": {
+        "Light Bone::37": 6,
+        "Light Bone::38": 11,
+        "Light Bone::39": 16,
+        "Light Bone::40": 7,
+        "Light Bone::41": 12
+      }
+    },
+    "nike-studio-fleece-crew": {
+      "category": "Women",
+      "sub": "Hoodies",
+      "brand": "Nike",
+      "name": "Studio Fleece Oversized Crew",
+      "price": 4200,
+      "isNew": true,
+      "desc": "Midweight brushed fleece crew with an oversized, slouchy fit.",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L"
+      ],
+      "colors": [
+        {
+          "name": "Black Print",
+          "hex": "#111111",
+          "img": "images/products/nike-studio-fleece-crew.webp"
+        }
+      ],
+      "variantStock": {
+        "Black Print::XS": 13,
+        "Black Print::S": 18,
+        "Black Print::M": 9,
+        "Black Print::L": 14
+      }
+    },
+    "nike-studio-fleece-wide-leg": {
+      "category": "Women",
+      "sub": "Pants",
+      "brand": "Nike",
+      "name": "Studio Fleece Mid-Rise Wide-Leg Pants",
+      "price": 3450,
+      "isNew": true,
+      "desc": "Relaxed wide-leg fleece pants with a soft mid-rise waistband.",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L"
+      ],
+      "colors": [
+        {
+          "name": "Pink Oxford",
+          "hex": "#e8c4c4",
+          "img": "images/products/nike-studio-fleece-wide-leg.webp"
+        }
+      ],
+      "variantStock": {
+        "Pink Oxford::XS": 6,
+        "Pink Oxford::S": 11,
+        "Pink Oxford::M": 16,
+        "Pink Oxford::L": 7
+      }
+    },
+    "nike-chill-knit-crop-top": {
+      "category": "Women",
+      "sub": "Tops",
+      "brand": "Nike",
+      "name": "Chill Knit Slim Long-Sleeve Cropped Top",
+      "price": 1850,
+      "isNew": true,
+      "desc": "Smooth, stretchy rib-knit cropped top with a slim fit.",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L"
+      ],
+      "colors": [
+        {
+          "name": "Burgundy Crush",
+          "hex": "#6b2e2a",
+          "img": "images/products/nike-chill-knit-crop-top.webp"
+        }
+      ],
+      "variantStock": {
+        "Burgundy Crush::XS": 13,
+        "Burgundy Crush::S": 18,
+        "Burgundy Crush::M": 9,
+        "Burgundy Crush::L": 14
+      }
+    },
+    "nike-varsity-elite-backpack": {
+      "category": "Accessories",
+      "sub": "Bags",
+      "brand": "Nike",
+      "name": "Varsity Elite Backpack (32L)",
+      "price": 4650,
+      "isNew": true,
+      "desc": "Team-ready 32L backpack with a padded laptop sleeve and shoe compartment.",
+      "sizes": [
+        "One Size"
+      ],
+      "colors": [
+        {
+          "name": "Black",
+          "hex": "#111111",
+          "img": "images/products/nike-varsity-elite-backpack.webp"
+        }
+      ],
+      "variantStock": {
+        "Black::One Size": 6
+      }
+    },
+    "nike-everyday-elevated-crew-6p": {
+      "category": "Accessories",
+      "sub": "Socks",
+      "brand": "Nike",
+      "name": "Everyday Elevated Crew Socks (6 Pairs)",
+      "price": 1450,
+      "isNew": true,
+      "desc": "Cushioned crew socks with arch support, six pairs per pack.",
+      "sizes": [
+        "M (38-42)",
+        "L (42-46)"
+      ],
+      "colors": [
+        {
+          "name": "White / Black",
+          "hex": "#ffffff",
+          "img": "images/products/nike-everyday-elevated-crew-6p.webp"
+        }
+      ],
+      "variantStock": {
+        "White / Black::M (38-42)": 13,
+        "White / Black::L (42-46)": 18
+      }
+    },
+    "nike-everyday-elevated-ankle-6p": {
+      "category": "Accessories",
+      "sub": "Socks",
+      "brand": "Nike",
+      "name": "Everyday Elevated Ankle Socks (6 Pairs)",
+      "price": 1350,
+      "isNew": true,
+      "desc": "Low-profile ankle socks with targeted cushioning, six pairs per pack.",
+      "sizes": [
+        "M (38-42)",
+        "L (42-46)"
+      ],
+      "colors": [
+        {
+          "name": "White / Black",
+          "hex": "#ffffff",
+          "img": "images/products/nike-everyday-elevated-ankle-6p.webp"
+        }
+      ],
+      "variantStock": {
+        "White / Black::M (38-42)": 6,
+        "White / Black::L (42-46)": 11
+      }
+    },
+    "ua-performance-no-show-socks": {
+      "category": "Accessories",
+      "sub": "Socks",
+      "brand": "Under Armour",
+      "name": "HeatGear Performance No-Show Socks (3 Pairs)",
+      "price": 750,
+      "desc": "Seamless toe construction and embedded arch support reduces foot fatigue. Anti-odor technology prevents the growth of odor-causing microbes.",
+      "sizes": [
+        "M (38-42)",
+        "L (42-46)"
+      ],
+      "colors": [
+        {
+          "name": "Black Heather",
+          "hex": "#262626",
+          "img": "images/heatgear-noshow-black.png"
+        },
+        {
+          "name": "Steel Grey",
+          "hex": "#737373",
+          "img": "images/heatgear-noshow-grey.png"
+        }
+      ],
+      "variantStock": {
+        "Black Heather::M (38-42)": 15,
+        "Black Heather::L (42-46)": 20,
+        "Steel Grey::M (38-42)": 12,
+        "Steel Grey::L (42-46)": 16
+      }
+    },
+    "nike-everyday-cushioned-crew": {
+      "category": "Accessories",
+      "sub": "Socks",
+      "brand": "Nike",
+      "name": "Everyday Cushioned Training Crew Socks (3 Pairs)",
+      "price": 850,
+      "desc": "Power through your training with thick terry sole cushioning for extra comfort on foot drills and lifts. Dri-FIT moisture wicking.",
+      "sizes": [
+        "M (38-42)",
+        "L (42-46)"
+      ],
+      "colors": [
+        {
+          "name": "White / Black Swoosh",
+          "hex": "#ffffff",
+          "img": "images/crewsocks-white.png"
+        },
+        {
+          "name": "Black / White Swoosh",
+          "hex": "#111111",
+          "img": "images/crewsocks-black.png"
+        }
+      ],
+      "variantStock": {
+        "White / Black Swoosh::M (38-42)": 20,
+        "White / Black Swoosh::L (42-46)": 25,
+        "Black / White Swoosh::M (38-42)": 18,
+        "Black / White Swoosh::L (42-46)": 22
+      }
+    },
+    "adidas-aeroready-baseball-cap": {
+      "category": "Accessories",
+      "sub": "Hats",
+      "brand": "Adidas",
+      "name": "Aeroready 3-Stripes Baseball Cap",
+      "price": 950,
+      "desc": "Curved brim with UV 50 factor protection and moisture-absorbing sweatband. Built for sunny outdoor miles and training sessions.",
+      "sizes": [
+        "One Size"
+      ],
+      "colors": [
+        {
+          "name": "Black / White",
+          "hex": "#0a0a0a",
+          "img": "images/adidas-cap-black.png"
+        },
+        {
+          "name": "Navy / White",
+          "hex": "#1e3a8a",
+          "img": "images/adidas-cap-navy.png"
+        }
+      ],
+      "variantStock": {
+        "Black / White::One Size": 15,
+        "Navy / White::One Size": 10
+      }
+    },
+    "nike-club-metal-swoosh-cap": {
+      "category": "Accessories",
+      "sub": "Hats",
+      "brand": "Nike",
+      "name": "Club Metal Swoosh Adjustable Cap",
+      "price": 1100,
+      "desc": "Classic mid-depth 6-panel cap with polished metal Swoosh ingot on the crown. Adjustable metal tri-glide closure for custom fit.",
+      "sizes": [
+        "One Size"
+      ],
+      "colors": [
+        {
+          "name": "Black / Silver Ingot",
+          "hex": "#111111",
+          "img": "images/nike-cap.png"
+        }
+      ],
+      "variantStock": {
+        "Black / Silver Ingot::One Size": 14
+      }
+    },
+    "adidas-linear-core-backpack": {
+      "category": "Accessories",
+      "sub": "Bags",
+      "brand": "Adidas",
+      "name": "Linear Classic Daily Backpack",
+      "price": 1650,
+      "desc": "Roomy training backpack with front zip pocket, side slip-in water bottle pockets, and ergonomic padded shoulder straps.",
+      "sizes": [
+        "One Size"
+      ],
+      "colors": [
+        {
+          "name": "Black / White Logo",
+          "hex": "#0a0a0a",
+          "img": "images/adidas-backpack.png"
+        }
+      ],
+      "variantStock": {
+        "Black / White Logo::One Size": 12
       },
-      {
-        "name": "Steel Grey",
-        "hex": "#737373",
-        "img": "images/heatgear-noshow-grey.png"
-      }
-    ],
-    "variantStock": {
-      "Black Heather::M (38-42)": 15,
-      "Black Heather::L (42-46)": 20,
-      "Steel Grey::M (38-42)": 12,
-      "Steel Grey::L (42-46)": 16
-    }
-  },
-  "nike-everyday-cushioned-crew": {
-    "category": "Accessories",
-    "sub": "Socks",
-    "brand": "Nike",
-    "name": "Everyday Cushioned Training Crew Socks (3 Pairs)",
-    "price": 850,
-    "desc": "Power through your training with thick terry sole cushioning for extra comfort on foot drills and lifts. Dri-FIT moisture wicking.",
-    "sizes": [
-      "M (38-42)",
-      "L (42-46)"
-    ],
-    "colors": [
-      {
-        "name": "White / Black Swoosh",
-        "hex": "#ffffff",
-        "img": "images/crewsocks-white.png"
+      "oldPrice": 2299
+    },
+    "nike-brasilia-duffel": {
+      "category": "Accessories",
+      "sub": "Bags",
+      "brand": "Nike",
+      "name": "Brasilia 9.5 Training Duffel Bag (Medium)",
+      "price": 2100,
+      "desc": "Heavyweight 600D polyester with water-resistant coated bottom. Features a dedicated exterior ventilated compartment for running shoes.",
+      "sizes": [
+        "One Size"
+      ],
+      "colors": [
+        {
+          "name": "Midnight Black",
+          "hex": "#111111",
+          "img": "images/nike-duffel.png"
+        },
+        {
+          "name": "Iron Grey",
+          "hex": "#52525b",
+          "img": "images/nike-duffel-grey.png"
+        }
+      ],
+      "variantStock": {
+        "Midnight Black::One Size": 15,
+        "Iron Grey::One Size": 10
       },
-      {
-        "name": "Black / White Swoosh",
-        "hex": "#111111",
-        "img": "images/crewsocks-black.png"
-      }
-    ],
-    "variantStock": {
-      "White / Black Swoosh::M (38-42)": 20,
-      "White / Black Swoosh::L (42-46)": 25,
-      "Black / White Swoosh::M (38-42)": 18,
-      "Black / White Swoosh::L (42-46)": 22
-    }
-  },
-  "adidas-aeroready-baseball-cap": {
-    "category": "Accessories",
-    "sub": "Hats",
-    "brand": "Adidas",
-    "name": "Aeroready 3-Stripes Baseball Cap",
-    "price": 950,
-    "desc": "Curved brim with UV 50 factor protection and moisture-absorbing sweatband. Built for sunny outdoor miles and training sessions.",
-    "sizes": [
-      "One Size"
-    ],
-    "colors": [
-      {
-        "name": "Black / White",
-        "hex": "#0a0a0a",
-        "img": "images/adidas-cap-black.png"
+      "oldPrice": 2999
+    },
+    "adidas-girls-flower-print-tee": {
+      "category": "Kids",
+      "sub": "Girls",
+      "brand": "Adidas",
+      "name": "Aeroready Girls Graphic Sports Tee",
+      "price": 950,
+      "desc": "Lightweight, cheerful training tee with floral Badge of Sport logo and sweat-absorbing AEROREADY performance.",
+      "sizes": [
+        "S (8-10)",
+        "M (10-12)",
+        "L (12-14)",
+        "XL (14-16)"
+      ],
+      "colors": [
+        {
+          "name": "Lilac",
+          "hex": "#c084fc",
+          "img": "images/adidas-girls-tee.png"
+        }
+      ],
+      "variantStock": {
+        "Lilac::S (8-10)": 4,
+        "Lilac::M (10-12)": 7,
+        "Lilac::L (12-14)": 9,
+        "Lilac::XL (14-16)": 5
       },
-      {
-        "name": "Navy / White",
-        "hex": "#1e3a8a",
-        "img": "images/adidas-cap-navy.png"
-      }
-    ],
-    "variantStock": {
-      "Black / White::One Size": 15,
-      "Navy / White::One Size": 10
-    }
-  },
-  "nike-club-metal-swoosh-cap": {
-    "category": "Accessories",
-    "sub": "Hats",
-    "brand": "Nike",
-    "name": "Club Metal Swoosh Adjustable Cap",
-    "price": 1100,
-    "desc": "Classic mid-depth 6-panel cap with polished metal Swoosh ingot on the crown. Adjustable metal tri-glide closure for custom fit.",
-    "sizes": [
-      "One Size"
-    ],
-    "colors": [
-      {
-        "name": "Black / Silver Ingot",
-        "hex": "#111111",
-        "img": "images/nike-cap.png"
-      }
-    ],
-    "variantStock": {
-      "Black / Silver Ingot::One Size": 14
-    }
-  },
-  "adidas-linear-core-backpack": {
-    "category": "Accessories",
-    "sub": "Bags",
-    "brand": "Adidas",
-    "name": "Linear Classic Daily Backpack",
-    "price": 1650,
-    "desc": "Roomy training backpack with front zip pocket, side slip-in water bottle pockets, and ergonomic padded shoulder straps.",
-    "sizes": [
-      "One Size"
-    ],
-    "colors": [
-      {
-        "name": "Black / White Logo",
-        "hex": "#0a0a0a",
-        "img": "images/adidas-backpack.png"
-      }
-    ],
-    "variantStock": {
-      "Black / White Logo::One Size": 12
-    }
-  },
-  "nike-brasilia-duffel": {
-    "category": "Accessories",
-    "sub": "Bags",
-    "brand": "Nike",
-    "name": "Brasilia 9.5 Training Duffel Bag (Medium)",
-    "price": 2100,
-    "desc": "Heavyweight 600D polyester with water-resistant coated bottom. Features a dedicated exterior ventilated compartment for running shoes.",
-    "sizes": [
-      "One Size"
-    ],
-    "colors": [
-      {
-        "name": "Midnight Black",
-        "hex": "#111111",
-        "img": "images/nike-duffel.png"
+      "oldPrice": 1499
+    },
+    "nike-trophy-girls-biker-shorts": {
+      "category": "Kids",
+      "sub": "Girls",
+      "brand": "Nike",
+      "name": "Trophy Dri-FIT Girls Training Shorts",
+      "price": 1150,
+      "desc": "Made to move, the Nike Trophy Shorts feature a wide elastic waistband with Dri-FIT moisture wicking for gymnastics, dance, or track.",
+      "sizes": [
+        "S (8-10)",
+        "M (10-12)",
+        "L (12-14)",
+        "XL (14-16)"
+      ],
+      "colors": [
+        {
+          "name": "Black",
+          "hex": "#111111",
+          "img": "images/girls-shorts.png"
+        }
+      ],
+      "variantStock": {
+        "Black::S (8-10)": 5,
+        "Black::M (10-12)": 8,
+        "Black::L (12-14)": 9,
+        "Black::XL (14-16)": 6
       },
-      {
-        "name": "Iron Grey",
-        "hex": "#52525b",
-        "img": "images/nike-duffel-grey.png"
-      }
-    ],
-    "variantStock": {
-      "Midnight Black::One Size": 15,
-      "Iron Grey::One Size": 10
-    }
-  },
-  "adidas-girls-flower-print-tee": {
-    "category": "Kids",
-    "sub": "Girls",
-    "brand": "Adidas",
-    "name": "Aeroready Girls Graphic Sports Tee",
-    "price": 950,
-    "desc": "Lightweight, cheerful training tee with floral Badge of Sport logo and sweat-absorbing AEROREADY performance.",
-    "sizes": [
-      "S (8-10)",
-      "M (10-12)",
-      "L (12-14)",
-      "XL (14-16)"
-    ],
-    "colors": [
-      {
-        "name": "Lilac",
-        "hex": "#c084fc",
-        "img": "images/adidas-girls-tee.png"
-      }
-    ],
-    "variantStock": {
-      "Lilac::S (8-10)": 4,
-      "Lilac::M (10-12)": 7,
-      "Lilac::L (12-14)": 9,
-      "Lilac::XL (14-16)": 5
-    }
-  },
-  "nike-trophy-girls-biker-shorts": {
-    "category": "Kids",
-    "sub": "Girls",
-    "brand": "Nike",
-    "name": "Trophy Dri-FIT Girls Training Shorts",
-    "price": 1150,
-    "desc": "Made to move, the Nike Trophy Shorts feature a wide elastic waistband with Dri-FIT moisture wicking for gymnastics, dance, or track.",
-    "sizes": [
-      "S (8-10)",
-      "M (10-12)",
-      "L (12-14)",
-      "XL (14-16)"
-    ],
-    "colors": [
-      {
-        "name": "Black",
-        "hex": "#111111",
-        "img": "images/girls-shorts.png"
-      }
-    ],
-    "variantStock": {
-      "Black::S (8-10)": 5,
-      "Black::M (10-12)": 8,
-      "Black::L (12-14)": 9,
-      "Black::XL (14-16)": 6
-    }
-  },
-  "adidas-boys-essentials-tracksuit": {
-    "category": "Kids",
-    "sub": "Boys",
-    "brand": "Adidas",
-    "name": "Essentials 3-Stripes Boys Tracksuit",
-    "price": 2800,
-    "desc": "Classic 2-piece jacket and pants set made with smooth recycled tricot. Complete with full-zip front and signature 3-Stripes tape.",
-    "sizes": [
-      "S (8-10)",
-      "M (10-12)",
-      "L (12-14)",
-      "XL (14-16)"
-    ],
-    "colors": [
-      {
-        "name": "Black / White",
-        "hex": "#0a0a0a",
-        "img": "images/adidas-boys-tracksuit.png"
+      "oldPrice": 1699
+    },
+    "adidas-boys-essentials-tracksuit": {
+      "category": "Kids",
+      "sub": "Boys",
+      "brand": "Adidas",
+      "name": "Essentials 3-Stripes Boys Tracksuit",
+      "price": 2800,
+      "desc": "Classic 2-piece jacket and pants set made with smooth recycled tricot. Complete with full-zip front and signature 3-Stripes tape.",
+      "sizes": [
+        "S (8-10)",
+        "M (10-12)",
+        "L (12-14)",
+        "XL (14-16)"
+      ],
+      "colors": [
+        {
+          "name": "Black / White",
+          "hex": "#0a0a0a",
+          "img": "images/adidas-boys-tracksuit.png"
+        },
+        {
+          "name": "Royal Blue",
+          "hex": "#1c4ed8",
+          "img": "images/adidas-boys-tracksuit.png"
+        }
+      ],
+      "variantStock": {
+        "Black / White::S (8-10)": 4,
+        "Black / White::M (10-12)": 7,
+        "Black / White::L (12-14)": 8,
+        "Black / White::XL (14-16)": 5,
+        "Royal Blue::S (8-10)": 3,
+        "Royal Blue::M (10-12)": 6,
+        "Royal Blue::L (12-14)": 7,
+        "Royal Blue::XL (14-16)": 4
       },
-      {
-        "name": "Royal Blue",
-        "hex": "#1c4ed8",
-        "img": "images/adidas-boys-tracksuit.png"
+      "oldPrice": 3999
+    },
+    "nike-dri-fit-boys-top": {
+      "category": "Kids",
+      "sub": "Boys",
+      "brand": "Nike",
+      "name": "Dri-FIT Academy Boys Training Top",
+      "price": 1250,
+      "desc": "Football training top made with sweat-wicking fabric and breathable mesh panels to keep boys cool and dry during football drills.",
+      "sizes": [
+        "S (8-10)",
+        "M (10-12)",
+        "L (12-14)",
+        "XL (14-16)"
+      ],
+      "colors": [
+        {
+          "name": "Navy / Volt",
+          "hex": "#10223d",
+          "img": "images/nike-boys-academy-top.png"
+        },
+        {
+          "name": "Bright Crimson",
+          "hex": "#ff2d55",
+          "img": "images/nike-boys-academy-top.png"
+        }
+      ],
+      "variantStock": {
+        "Navy / Volt::S (8-10)": 5,
+        "Navy / Volt::M (10-12)": 8,
+        "Navy / Volt::L (12-14)": 10,
+        "Navy / Volt::XL (14-16)": 6,
+        "Bright Crimson::S (8-10)": 4,
+        "Bright Crimson::M (10-12)": 7,
+        "Bright Crimson::L (12-14)": 8,
+        "Bright Crimson::XL (14-16)": 5
       }
-    ],
-    "variantStock": {
-      "Black / White::S (8-10)": 4,
-      "Black / White::M (10-12)": 7,
-      "Black / White::L (12-14)": 8,
-      "Black / White::XL (14-16)": 5,
-      "Royal Blue::S (8-10)": 3,
-      "Royal Blue::M (10-12)": 6,
-      "Royal Blue::L (12-14)": 7,
-      "Royal Blue::XL (14-16)": 4
-    }
-  },
-  "nike-dri-fit-boys-top": {
-    "category": "Kids",
-    "sub": "Boys",
-    "brand": "Nike",
-    "name": "Dri-FIT Academy Boys Training Top",
-    "price": 1250,
-    "desc": "Football training top made with sweat-wicking fabric and breathable mesh panels to keep boys cool and dry during football drills.",
-    "sizes": [
-      "S (8-10)",
-      "M (10-12)",
-      "L (12-14)",
-      "XL (14-16)"
-    ],
-    "colors": [
-      {
-        "name": "Navy / Volt",
-        "hex": "#10223d",
-        "img": "images/nike-boys-academy-top.png"
+    },
+    "reebok-classic-leather-kids": {
+      "category": "Kids",
+      "sub": "Shoes",
+      "brand": "Reebok",
+      "name": "Classic Leather Junior",
+      "price": 2250,
+      "desc": "Timeless athletic heritage re-engineered for young athletes. Ultra-soft garment leather upper and high-abrasion rubber outsole.",
+      "sizes": [
+        "33",
+        "34",
+        "35",
+        "36",
+        "37",
+        "38"
+      ],
+      "colors": [
+        {
+          "name": "Classic White",
+          "hex": "#fafafa",
+          "img": "images/reebok-classic-kids.png"
+        },
+        {
+          "name": "Classic Black",
+          "hex": "#1a1a1a",
+          "img": "images/airforce1-triple-black.png"
+        }
+      ],
+      "variantStock": {
+        "Classic White::33": 5,
+        "Classic White::34": 7,
+        "Classic White::35": 9,
+        "Classic White::36": 8,
+        "Classic White::37": 6,
+        "Classic White::38": 4,
+        "Classic Black::33": 4,
+        "Classic Black::34": 6,
+        "Classic Black::35": 7,
+        "Classic Black::36": 6,
+        "Classic Black::37": 5,
+        "Classic Black::38": 3
       },
-      {
-        "name": "Bright Crimson",
-        "hex": "#ff2d55",
-        "img": "images/nike-boys-academy-top.png"
-      }
-    ],
-    "variantStock": {
-      "Navy / Volt::S (8-10)": 5,
-      "Navy / Volt::M (10-12)": 8,
-      "Navy / Volt::L (12-14)": 10,
-      "Navy / Volt::XL (14-16)": 6,
-      "Bright Crimson::S (8-10)": 4,
-      "Bright Crimson::M (10-12)": 7,
-      "Bright Crimson::L (12-14)": 8,
-      "Bright Crimson::XL (14-16)": 5
-    }
-  },
-  "reebok-classic-leather-kids": {
-    "category": "Kids",
-    "sub": "Shoes",
-    "brand": "Reebok",
-    "name": "Classic Leather Junior",
-    "price": 2250,
-    "desc": "Timeless athletic heritage re-engineered for young athletes. Ultra-soft garment leather upper and high-abrasion rubber outsole.",
-    "sizes": [
-      "33",
-      "34",
-      "35",
-      "36",
-      "37",
-      "38"
-    ],
-    "colors": [
-      {
-        "name": "Classic White",
-        "hex": "#fafafa",
-        "img": "images/reebok-classic-kids.png"
+      "oldPrice": 3299
+    },
+    "nike-revolution-7-kids": {
+      "category": "Kids",
+      "sub": "Shoes",
+      "brand": "Nike",
+      "name": "Revolution 7 Junior Road Runners",
+      "price": 2450,
+      "desc": "Loaded with the sort of soft cushioning and support your young runner needs to take on school races and playground sprints with confidence.",
+      "sizes": [
+        "33",
+        "34",
+        "35",
+        "36",
+        "37",
+        "38"
+      ],
+      "colors": [
+        {
+          "name": "Racer Blue",
+          "hex": "#1a56db",
+          "img": "images/nike-revolution-7-kids.png"
+        },
+        {
+          "name": "Triple Black",
+          "hex": "#111111",
+          "img": "images/airforce1-triple-black.png"
+        }
+      ],
+      "variantStock": {
+        "Racer Blue::33": 4,
+        "Racer Blue::34": 6,
+        "Racer Blue::35": 8,
+        "Racer Blue::36": 7,
+        "Racer Blue::37": 5,
+        "Racer Blue::38": 3,
+        "Triple Black::33": 3,
+        "Triple Black::34": 5,
+        "Triple Black::35": 7,
+        "Triple Black::36": 6,
+        "Triple Black::37": 4,
+        "Triple Black::38": 2
       },
-      {
-        "name": "Classic Black",
-        "hex": "#1a1a1a",
-        "img": "images/airforce1-triple-black.png"
+      "oldPrice": 3499
+    },
+    "adidas-essentials-linear-hoodie": {
+      "category": "Women",
+      "sub": "Hoodies",
+      "brand": "Adidas",
+      "name": "Essentials 3-Stripes French Terry Hoodie",
+      "price": 2900,
+      "desc": "Soft cotton-blend French terry hoodie with iconic 3-Stripes down the sleeves. A comfortable layer before, during, or after workouts.",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L"
+      ],
+      "colors": [
+        {
+          "name": "Wonder White",
+          "hex": "#eeebe2",
+          "img": "images/adidas-essentials-hoodie.png"
+        },
+        {
+          "name": "Legend Ink",
+          "hex": "#131e2e",
+          "img": "images/adidas-essentials-hoodie.png"
+        }
+      ],
+      "variantStock": {
+        "Wonder White::XS": 4,
+        "Wonder White::S": 6,
+        "Wonder White::M": 8,
+        "Wonder White::L": 4,
+        "Legend Ink::XS": 3,
+        "Legend Ink::S": 5,
+        "Legend Ink::M": 7,
+        "Legend Ink::L": 3
       }
-    ],
-    "variantStock": {
-      "Classic White::33": 5,
-      "Classic White::34": 7,
-      "Classic White::35": 9,
-      "Classic White::36": 8,
-      "Classic White::37": 6,
-      "Classic White::38": 4,
-      "Classic Black::33": 4,
-      "Classic Black::34": 6,
-      "Classic Black::35": 7,
-      "Classic Black::36": 6,
-      "Classic Black::37": 5,
-      "Classic Black::38": 3
-    }
-  },
-  "nike-revolution-7-kids": {
-    "category": "Kids",
-    "sub": "Shoes",
-    "brand": "Nike",
-    "name": "Revolution 7 Junior Road Runners",
-    "price": 2450,
-    "desc": "Loaded with the sort of soft cushioning and support your young runner needs to take on school races and playground sprints with confidence.",
-    "sizes": [
-      "33",
-      "34",
-      "35",
-      "36",
-      "37",
-      "38"
-    ],
-    "colors": [
-      {
-        "name": "Racer Blue",
-        "hex": "#1a56db",
-        "img": "images/nike-revolution-7-kids.png"
+    },
+    "nike-sportswear-phoenix-fleece": {
+      "category": "Women",
+      "sub": "Hoodies",
+      "brand": "Nike",
+      "name": "Phoenix Fleece Oversized Pullover",
+      "price": 3600,
+      "desc": "Rise up and transform your fleece wardrobe with strong cozy vibes. Extra-wide ribbing at the hem and cuffs adds structured style.",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L"
+      ],
+      "colors": [
+        {
+          "name": "Oatmeal Heather",
+          "hex": "#d6cdb7",
+          "img": "images/nike-phoenix-fleece.png"
+        },
+        {
+          "name": "Black",
+          "hex": "#111111",
+          "img": "images/nike-phoenix-fleece.png"
+        }
+      ],
+      "variantStock": {
+        "Oatmeal Heather::XS": 4,
+        "Oatmeal Heather::S": 7,
+        "Oatmeal Heather::M": 9,
+        "Oatmeal Heather::L": 5,
+        "Black::XS": 3,
+        "Black::S": 6,
+        "Black::M": 8,
+        "Black::L": 4
+      }
+    },
+    "nike-pro-dri-fit-leggings": {
+      "category": "Women",
+      "sub": "Leggings",
+      "brand": "Nike",
+      "name": "Nike Pro Mid-Rise Tights",
+      "price": 2850,
+      "desc": "Stretchy fabric with sweat-wicking technology hugs your body to keep you feeling supported and cool from warmups through cooldowns.",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L"
+      ],
+      "colors": [
+        {
+          "name": "Black",
+          "hex": "#0a0a0a",
+          "img": "images/nike-pro-tights.png"
+        },
+        {
+          "name": "Smoke Grey",
+          "hex": "#484848",
+          "img": "images/nike-pro-tights.png"
+        }
+      ],
+      "variantStock": {
+        "Black::XS": 5,
+        "Black::S": 10,
+        "Black::M": 12,
+        "Black::L": 7,
+        "Smoke Grey::XS": 4,
+        "Smoke Grey::S": 7,
+        "Smoke Grey::M": 9,
+        "Smoke Grey::L": 5
+      }
+    },
+    "ua-rush-compression-leggings": {
+      "category": "Women",
+      "sub": "Leggings",
+      "brand": "Under Armour",
+      "name": "UA RUSH SmartForm Leggings",
+      "price": 3900,
+      "desc": "Mineral-infused fabric captures your body emitted heat and reflects it back into tissues, improving endurance, strength, and recovery.",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L"
+      ],
+      "colors": [
+        {
+          "name": "Black / Iridescent",
+          "hex": "#1a1a24",
+          "img": "images/ua-rush-leggings.png"
+        },
+        {
+          "name": "Dark Maroon",
+          "hex": "#4a1525",
+          "img": "images/ua-rush-leggings.png"
+        }
+      ],
+      "variantStock": {
+        "Black / Iridescent::XS": 4,
+        "Black / Iridescent::S": 8,
+        "Black / Iridescent::M": 10,
+        "Black / Iridescent::L": 6,
+        "Dark Maroon::XS": 3,
+        "Dark Maroon::S": 6,
+        "Dark Maroon::M": 8,
+        "Dark Maroon::L": 4
       },
-      {
-        "name": "Triple Black",
-        "hex": "#111111",
-        "img": "images/airforce1-triple-black.png"
+      "oldPrice": 5499
+    },
+    "ua-crossback-sports-bra": {
+      "category": "Women",
+      "sub": "Tops",
+      "brand": "Under Armour",
+      "name": "HeatGear Armour Crossback Bra",
+      "price": 1750,
+      "desc": "Delivers strategic support tailored for medium-impact activities like cycling, weight training, and boxing. Super-smooth HeatGear fabric.",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L"
+      ],
+      "colors": [
+        {
+          "name": "Mod Grey",
+          "hex": "#5c5c5c",
+          "img": "images/ua-crossback-bra.png"
+        },
+        {
+          "name": "Midnight Navy",
+          "hex": "#111d33",
+          "img": "images/ua-crossback-bra.png"
+        }
+      ],
+      "variantStock": {
+        "Mod Grey::XS": 4,
+        "Mod Grey::S": 8,
+        "Mod Grey::M": 10,
+        "Mod Grey::L": 4,
+        "Midnight Navy::XS": 3,
+        "Midnight Navy::S": 6,
+        "Midnight Navy::M": 8,
+        "Midnight Navy::L": 4
       }
-    ],
-    "variantStock": {
-      "Racer Blue::33": 4,
-      "Racer Blue::34": 6,
-      "Racer Blue::35": 8,
-      "Racer Blue::36": 7,
-      "Racer Blue::37": 5,
-      "Racer Blue::38": 3,
-      "Triple Black::33": 3,
-      "Triple Black::34": 5,
-      "Triple Black::35": 7,
-      "Triple Black::36": 6,
-      "Triple Black::37": 4,
-      "Triple Black::38": 2
-    }
-  },
-  "adidas-essentials-linear-hoodie": {
-    "category": "Women",
-    "sub": "Hoodies",
-    "brand": "Adidas",
-    "name": "Essentials 3-Stripes French Terry Hoodie",
-    "price": 2900,
-    "desc": "Soft cotton-blend French terry hoodie with iconic 3-Stripes down the sleeves. A comfortable layer before, during, or after workouts.",
-    "sizes": [
-      "XS",
-      "S",
-      "M",
-      "L"
-    ],
-    "colors": [
-      {
-        "name": "Wonder White",
-        "hex": "#eeebe2",
-        "img": "images/adidas-essentials-hoodie.png"
+    },
+    "nike-swoosh-medium-bra": {
+      "category": "Women",
+      "sub": "Tops",
+      "brand": "Nike",
+      "name": "Dri-FIT Swoosh Medium-Support Sports Bra",
+      "price": 1950,
+      "desc": "Classic racerback silhouette with non-padded compression design keeps everything comfortably in place during gym training and spin classes.",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L"
+      ],
+      "colors": [
+        {
+          "name": "Black / White",
+          "hex": "#0a0a0a",
+          "img": "images/nike-swoosh-bra.png"
+        },
+        {
+          "name": "Desert Berry",
+          "hex": "#8e3a59",
+          "img": "images/nike-swoosh-bra.png"
+        }
+      ],
+      "variantStock": {
+        "Black / White::XS": 5,
+        "Black / White::S": 9,
+        "Black / White::M": 12,
+        "Black / White::L": 6,
+        "Desert Berry::XS": 4,
+        "Desert Berry::S": 7,
+        "Desert Berry::M": 9,
+        "Desert Berry::L": 5
       },
-      {
-        "name": "Legend Ink",
-        "hex": "#131e2e",
-        "img": "images/adidas-essentials-hoodie.png"
+      "oldPrice": 2799
+    },
+    "nike-invincible-3": {
+      "category": "Women",
+      "sub": "Shoes",
+      "brand": "Nike",
+      "name": "Invincible 3 Road Running Shoes",
+      "price": 7900,
+      "desc": "Maximum cushioning and bounce for everyday recovery runs. Features ultra-responsive ZoomX foam and a wider midsole base for stable strides.",
+      "sizes": [
+        "37",
+        "38",
+        "39",
+        "40",
+        "41"
+      ],
+      "colors": [
+        {
+          "name": "Platinum Violet",
+          "hex": "#b8a9c9",
+          "img": "images/nike-invincible-3.png"
+        },
+        {
+          "name": "Pure White",
+          "hex": "#ffffff",
+          "img": "images/nike-invincible-3.png"
+        }
+      ],
+      "variantStock": {
+        "Platinum Violet::37": 4,
+        "Platinum Violet::38": 6,
+        "Platinum Violet::39": 8,
+        "Platinum Violet::40": 5,
+        "Platinum Violet::41": 3,
+        "Pure White::37": 3,
+        "Pure White::38": 5,
+        "Pure White::39": 7,
+        "Pure White::40": 4,
+        "Pure White::41": 2
       }
-    ],
-    "variantStock": {
-      "Wonder White::XS": 4,
-      "Wonder White::S": 6,
-      "Wonder White::M": 8,
-      "Wonder White::L": 4,
-      "Legend Ink::XS": 3,
-      "Legend Ink::S": 5,
-      "Legend Ink::M": 7,
-      "Legend Ink::L": 3
-    }
-  },
-  "nike-sportswear-phoenix-fleece": {
-    "category": "Women",
-    "sub": "Hoodies",
-    "brand": "Nike",
-    "name": "Phoenix Fleece Oversized Pullover",
-    "price": 3600,
-    "desc": "Rise up and transform your fleece wardrobe with strong cozy vibes. Extra-wide ribbing at the hem and cuffs adds structured style.",
-    "sizes": [
-      "XS",
-      "S",
-      "M",
-      "L"
-    ],
-    "colors": [
-      {
-        "name": "Oatmeal Heather",
-        "hex": "#d6cdb7",
-        "img": "images/nike-phoenix-fleece.png"
+    },
+    "adidas-ultraboost-light": {
+      "category": "Women",
+      "sub": "Shoes",
+      "brand": "Adidas",
+      "name": "Ultraboost Light Running Shoes",
+      "price": 8500,
+      "desc": "Experience epic energy return with the lightest Ultraboost ever made. Built with 30% lighter Boost capsule material and foot-hugging Primeknit.",
+      "sizes": [
+        "37",
+        "38",
+        "39",
+        "40",
+        "41"
+      ],
+      "colors": [
+        {
+          "name": "Core Black / Violet",
+          "hex": "#1b1b2f",
+          "img": "images/adidas-ultraboost-light.png"
+        },
+        {
+          "name": "Cloud White",
+          "hex": "#f0f0f0",
+          "img": "images/afc1-white.png"
+        }
+      ],
+      "variantStock": {
+        "Core Black / Violet::37": 4,
+        "Core Black / Violet::38": 7,
+        "Core Black / Violet::39": 9,
+        "Core Black / Violet::40": 6,
+        "Core Black / Violet::41": 3,
+        "Cloud White::37": 3,
+        "Cloud White::38": 6,
+        "Cloud White::39": 8,
+        "Cloud White::40": 5,
+        "Cloud White::41": 2
       },
-      {
-        "name": "Black",
-        "hex": "#111111",
-        "img": "images/nike-phoenix-fleece.png"
+      "oldPrice": 11999
+    },
+    "nike-club-fleece-joggers": {
+      "category": "Men",
+      "sub": "Pants",
+      "brand": "Nike",
+      "name": "Club Fleece Athletic Joggers",
+      "price": 2650,
+      "desc": "Smooth brushed-back fleece with ribbed cuffs lets you show off your kicks. Features an elastic waistband with drawcord for a personalized fit.",
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "colors": [
+        {
+          "name": "Dark Grey",
+          "hex": "#2c2c2c",
+          "img": "images/nike-fleece-joggers.png"
+        },
+        {
+          "name": "Black",
+          "hex": "#0a0a0a",
+          "img": "images/nike-fleece-joggers.png"
+        }
+      ],
+      "variantStock": {
+        "Dark Grey::S": 4,
+        "Dark Grey::M": 8,
+        "Dark Grey::L": 10,
+        "Dark Grey::XL": 5,
+        "Black::S": 5,
+        "Black::M": 9,
+        "Black::L": 11,
+        "Black::XL": 6
       }
-    ],
-    "variantStock": {
-      "Oatmeal Heather::XS": 4,
-      "Oatmeal Heather::S": 7,
-      "Oatmeal Heather::M": 9,
-      "Oatmeal Heather::L": 5,
-      "Black::XS": 3,
-      "Black::S": 6,
-      "Black::M": 8,
-      "Black::L": 4
-    }
-  },
-  "nike-pro-dri-fit-leggings": {
-    "category": "Women",
-    "sub": "Leggings",
-    "brand": "Nike",
-    "name": "Nike Pro Mid-Rise Tights",
-    "price": 2850,
-    "desc": "Stretchy fabric with sweat-wicking technology hugs your body to keep you feeling supported and cool from warmups through cooldowns.",
-    "sizes": [
-      "XS",
-      "S",
-      "M",
-      "L"
-    ],
-    "colors": [
-      {
-        "name": "Black",
-        "hex": "#0a0a0a",
-        "img": "images/nike-pro-tights.png"
+    },
+    "adidas-tiro-24-pants": {
+      "category": "Men",
+      "sub": "Pants",
+      "brand": "Adidas",
+      "name": "Tiro 24 Track Training Pants",
+      "price": 2400,
+      "desc": "Signature tapered athletic silhouette with ankle zips for quick on-and-off over boots. AEROREADY moisture management keeps you dry.",
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "colors": [
+        {
+          "name": "Black / White",
+          "hex": "#0a0a0a",
+          "img": "images/adidas-tiro-pants.png"
+        },
+        {
+          "name": "Team Navy",
+          "hex": "#1b2a4a",
+          "img": "images/adidas-tiro-pants.png"
+        }
+      ],
+      "variantStock": {
+        "Black / White::S": 5,
+        "Black / White::M": 10,
+        "Black / White::L": 12,
+        "Black / White::XL": 6,
+        "Team Navy::S": 4,
+        "Team Navy::M": 7,
+        "Team Navy::L": 9,
+        "Team Navy::XL": 5
       },
-      {
-        "name": "Smoke Grey",
-        "hex": "#484848",
-        "img": "images/nike-pro-tights.png"
-      }
-    ],
-    "variantStock": {
-      "Black::XS": 5,
-      "Black::S": 10,
-      "Black::M": 12,
-      "Black::L": 7,
-      "Smoke Grey::XS": 4,
-      "Smoke Grey::S": 7,
-      "Smoke Grey::M": 9,
-      "Smoke Grey::L": 5
-    }
-  },
-  "ua-rush-compression-leggings": {
-    "category": "Women",
-    "sub": "Leggings",
-    "brand": "Under Armour",
-    "name": "UA RUSH SmartForm Leggings",
-    "price": 3900,
-    "desc": "Mineral-infused fabric captures your body emitted heat and reflects it back into tissues, improving endurance, strength, and recovery.",
-    "sizes": [
-      "XS",
-      "S",
-      "M",
-      "L"
-    ],
-    "colors": [
-      {
-        "name": "Black / Iridescent",
-        "hex": "#1a1a24",
-        "img": "images/ua-rush-leggings.png"
+      "oldPrice": 3299
+    },
+    "puma-essentials-fleece-hoodie": {
+      "category": "Men",
+      "sub": "Hoodies",
+      "brand": "Puma",
+      "name": "Essentials Big Logo Fleece Hoodie",
+      "price": 2750,
+      "desc": "Soft French terry fabric with bold PUMA No. 1 chest logo. Tailored for warmup track sessions and casual everyday recovery.",
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "colors": [
+        {
+          "name": "Puma Navy",
+          "hex": "#1a2332",
+          "img": "images/puma-fleece-hoodie.png"
+        },
+        {
+          "name": "Medium Grey",
+          "hex": "#6b7280",
+          "img": "images/puma-fleece-hoodie.png"
+        }
+      ],
+      "variantStock": {
+        "Puma Navy::S": 4,
+        "Puma Navy::M": 6,
+        "Puma Navy::L": 8,
+        "Puma Navy::XL": 5,
+        "Medium Grey::S": 3,
+        "Medium Grey::M": 5,
+        "Medium Grey::L": 7,
+        "Medium Grey::XL": 4
       },
-      {
-        "name": "Dark Maroon",
-        "hex": "#4a1525",
-        "img": "images/ua-rush-leggings.png"
-      }
-    ],
-    "variantStock": {
-      "Black / Iridescent::XS": 4,
-      "Black / Iridescent::S": 8,
-      "Black / Iridescent::M": 10,
-      "Black / Iridescent::L": 6,
-      "Dark Maroon::XS": 3,
-      "Dark Maroon::S": 6,
-      "Dark Maroon::M": 8,
-      "Dark Maroon::L": 4
-    }
-  },
-  "ua-crossback-sports-bra": {
-    "category": "Women",
-    "sub": "Tops",
-    "brand": "Under Armour",
-    "name": "HeatGear Armour Crossback Bra",
-    "price": 1750,
-    "desc": "Delivers strategic support tailored for medium-impact activities like cycling, weight training, and boxing. Super-smooth HeatGear fabric.",
-    "sizes": [
-      "XS",
-      "S",
-      "M",
-      "L"
-    ],
-    "colors": [
-      {
-        "name": "Mod Grey",
-        "hex": "#5c5c5c",
-        "img": "images/ua-crossback-bra.png"
+      "oldPrice": 3999
+    },
+    "nike-club-fleece-hoodie": {
+      "category": "Men",
+      "sub": "Hoodies",
+      "brand": "Nike",
+      "name": "Club Fleece Pullover Hoodie",
+      "price": 3200,
+      "desc": "A wardrobe staple, Club Fleece is brushed on the inside for added warmth and softness. Features a classic kangaroo pocket and ribbed hem.",
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "colors": [
+        {
+          "name": "Black",
+          "hex": "#111111",
+          "img": "images/nike-club-hoodie.png"
+        },
+        {
+          "name": "Heather Grey",
+          "hex": "#8a8a8a",
+          "img": "images/nike-club-hoodie.png"
+        }
+      ],
+      "variantStock": {
+        "Black::S": 4,
+        "Black::M": 7,
+        "Black::L": 9,
+        "Black::XL": 5,
+        "Heather Grey::S": 3,
+        "Heather Grey::M": 6,
+        "Heather Grey::L": 8,
+        "Heather Grey::XL": 4
       },
-      {
-        "name": "Midnight Navy",
-        "hex": "#111d33",
-        "img": "images/ua-crossback-bra.png"
+      "oldPrice": 4599
+    },
+    "adidas-aeroready-tee": {
+      "category": "Men",
+      "sub": "Tops",
+      "brand": "Adidas",
+      "name": "Aeroready Designed for Movement Tee",
+      "price": 1450,
+      "desc": "Stay focused on your workout with moisture-absorbing AEROREADY tech and iconic 3-Stripes styling across the shoulders.",
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "colors": [
+        {
+          "name": "Lucid Cyan",
+          "hex": "#00c3e3",
+          "img": "images/adidas-aeroready-tee.png"
+        },
+        {
+          "name": "White",
+          "hex": "#f8f8f8",
+          "img": "images/adidas-aeroready-tee.png"
+        }
+      ],
+      "variantStock": {
+        "Lucid Cyan::S": 6,
+        "Lucid Cyan::M": 9,
+        "Lucid Cyan::L": 12,
+        "Lucid Cyan::XL": 7,
+        "White::S": 5,
+        "White::M": 8,
+        "White::L": 10,
+        "White::XL": 6
       }
-    ],
-    "variantStock": {
-      "Mod Grey::XS": 4,
-      "Mod Grey::S": 8,
-      "Mod Grey::M": 10,
-      "Mod Grey::L": 4,
-      "Midnight Navy::XS": 3,
-      "Midnight Navy::S": 6,
-      "Midnight Navy::M": 8,
-      "Midnight Navy::L": 4
-    }
-  },
-  "nike-swoosh-medium-bra": {
-    "category": "Women",
-    "sub": "Tops",
-    "brand": "Nike",
-    "name": "Dri-FIT Swoosh Medium-Support Sports Bra",
-    "price": 1950,
-    "desc": "Classic racerback silhouette with non-padded compression design keeps everything comfortably in place during gym training and spin classes.",
-    "sizes": [
-      "XS",
-      "S",
-      "M",
-      "L"
-    ],
-    "colors": [
-      {
-        "name": "Black / White",
-        "hex": "#0a0a0a",
-        "img": "images/nike-swoosh-bra.png"
+    },
+    "nike-miler-running-top": {
+      "category": "Men",
+      "sub": "Tops",
+      "brand": "Nike",
+      "name": "Dri-FIT Miler Running Top",
+      "price": 1850,
+      "desc": "Ultralight, breathable Dri-FIT fabric with UVA/UVB protection and rolled-forward shoulder seams for unrestricted arm swing during long-distance miles.",
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL"
+      ],
+      "colors": [
+        {
+          "name": "Volt Glow",
+          "hex": "#c8ff00",
+          "img": "images/nike-miler-top.png"
+        },
+        {
+          "name": "Obsidian Black",
+          "hex": "#111111",
+          "img": "images/nike-miler-top.png"
+        }
+      ],
+      "variantStock": {
+        "Volt Glow::S": 5,
+        "Volt Glow::M": 8,
+        "Volt Glow::L": 10,
+        "Volt Glow::XL": 6,
+        "Volt Glow::XXL": 4,
+        "Obsidian Black::S": 4,
+        "Obsidian Black::M": 7,
+        "Obsidian Black::L": 9,
+        "Obsidian Black::XL": 5,
+        "Obsidian Black::XXL": 3
+      }
+    },
+    "nike-air-force-1": {
+      "category": "Men",
+      "sub": "Shoes",
+      "brand": "Nike",
+      "name": "Air Force 1 07",
+      "price": 5499,
+      "desc": "The legend lives on in the Nike Air Force 1 07. Hardwood court comfort meets street heritage with premium stitched leather and Nike Air cushioning.",
+      "sizes": [
+        "40",
+        "41",
+        "42",
+        "43",
+        "44",
+        "45"
+      ],
+      "colors": [
+        {
+          "name": "Triple White",
+          "hex": "#ffffff",
+          "img": "images/afc1-white.png"
+        },
+        {
+          "name": "Triple Black",
+          "hex": "#0a0a0a",
+          "img": "images/airforce1-triple-black.png"
+        }
+      ],
+      "variantStock": {
+        "Triple White::40": 8,
+        "Triple White::41": 12,
+        "Triple White::42": 15,
+        "Triple White::43": 10,
+        "Triple White::44": 6,
+        "Triple White::45": 4,
+        "Triple Black::40": 5,
+        "Triple Black::41": 9,
+        "Triple Black::42": 11,
+        "Triple Black::43": 8,
+        "Triple Black::44": 5,
+        "Triple Black::45": 3
       },
-      {
-        "name": "Desert Berry",
-        "hex": "#8e3a59",
-        "img": "images/nike-swoosh-bra.png"
+      "oldPrice": 7999
+    },
+    "nike-pegasus-41": {
+      "category": "Men",
+      "sub": "Shoes",
+      "brand": "Nike",
+      "name": "Air Zoom Pegasus 41",
+      "price": 6800,
+      "desc": "Engineered with dual Air Zoom units and ReactX foam, the Pegasus 41 delivers an energized, responsive ride for everyday road running across Cairo.",
+      "sizes": [
+        "41",
+        "42",
+        "43",
+        "44",
+        "45"
+      ],
+      "colors": [
+        {
+          "name": "Volt / Black",
+          "hex": "#c8ff00",
+          "img": "images/hero-shoe.jpg"
+        },
+        {
+          "name": "Pure Platinum",
+          "hex": "#e5e5e5",
+          "img": "images/afc1-white.png"
+        }
+      ],
+      "variantStock": {
+        "Volt / Black::41": 6,
+        "Volt / Black::42": 8,
+        "Volt / Black::43": 10,
+        "Volt / Black::44": 7,
+        "Volt / Black::45": 5,
+        "Pure Platinum::41": 4,
+        "Pure Platinum::42": 6,
+        "Pure Platinum::43": 8,
+        "Pure Platinum::44": 5,
+        "Pure Platinum::45": 3
       }
-    ],
-    "variantStock": {
-      "Black / White::XS": 5,
-      "Black / White::S": 9,
-      "Black / White::M": 12,
-      "Black / White::L": 6,
-      "Desert Berry::XS": 4,
-      "Desert Berry::S": 7,
-      "Desert Berry::M": 9,
-      "Desert Berry::L": 5
     }
-  },
-  "nike-invincible-3": {
-    "category": "Women",
-    "sub": "Shoes",
-    "brand": "Nike",
-    "name": "Invincible 3 Road Running Shoes",
-    "price": 7900,
-    "desc": "Maximum cushioning and bounce for everyday recovery runs. Features ultra-responsive ZoomX foam and a wider midsole base for stable strides.",
-    "sizes": [
-      "37",
-      "38",
-      "39",
-      "40",
-      "41"
-    ],
-    "colors": [
-      {
-        "name": "Platinum Violet",
-        "hex": "#b8a9c9",
-        "img": "images/nike-invincible-3.png"
-      },
-      {
-        "name": "Pure White",
-        "hex": "#ffffff",
-        "img": "images/nike-invincible-3.png"
-      }
-    ],
-    "variantStock": {
-      "Platinum Violet::37": 4,
-      "Platinum Violet::38": 6,
-      "Platinum Violet::39": 8,
-      "Platinum Violet::40": 5,
-      "Platinum Violet::41": 3,
-      "Pure White::37": 3,
-      "Pure White::38": 5,
-      "Pure White::39": 7,
-      "Pure White::40": 4,
-      "Pure White::41": 2
-    }
-  },
-  "adidas-ultraboost-light": {
-    "category": "Women",
-    "sub": "Shoes",
-    "brand": "Adidas",
-    "name": "Ultraboost Light Running Shoes",
-    "price": 8500,
-    "desc": "Experience epic energy return with the lightest Ultraboost ever made. Built with 30% lighter Boost capsule material and foot-hugging Primeknit.",
-    "sizes": [
-      "37",
-      "38",
-      "39",
-      "40",
-      "41"
-    ],
-    "colors": [
-      {
-        "name": "Core Black / Violet",
-        "hex": "#1b1b2f",
-        "img": "images/adidas-ultraboost-light.png"
-      },
-      {
-        "name": "Cloud White",
-        "hex": "#f0f0f0",
-        "img": "images/afc1-white.png"
-      }
-    ],
-    "variantStock": {
-      "Core Black / Violet::37": 4,
-      "Core Black / Violet::38": 7,
-      "Core Black / Violet::39": 9,
-      "Core Black / Violet::40": 6,
-      "Core Black / Violet::41": 3,
-      "Cloud White::37": 3,
-      "Cloud White::38": 6,
-      "Cloud White::39": 8,
-      "Cloud White::40": 5,
-      "Cloud White::41": 2
-    }
-  },
-  "nike-club-fleece-joggers": {
-    "category": "Men",
-    "sub": "Pants",
-    "brand": "Nike",
-    "name": "Club Fleece Athletic Joggers",
-    "price": 2650,
-    "desc": "Smooth brushed-back fleece with ribbed cuffs lets you show off your kicks. Features an elastic waistband with drawcord for a personalized fit.",
-    "sizes": [
-      "S",
-      "M",
-      "L",
-      "XL"
-    ],
-    "colors": [
-      {
-        "name": "Dark Grey",
-        "hex": "#2c2c2c",
-        "img": "images/nike-fleece-joggers.png"
-      },
-      {
-        "name": "Black",
-        "hex": "#0a0a0a",
-        "img": "images/nike-fleece-joggers.png"
-      }
-    ],
-    "variantStock": {
-      "Dark Grey::S": 4,
-      "Dark Grey::M": 8,
-      "Dark Grey::L": 10,
-      "Dark Grey::XL": 5,
-      "Black::S": 5,
-      "Black::M": 9,
-      "Black::L": 11,
-      "Black::XL": 6
-    }
-  },
-  "adidas-tiro-24-pants": {
-    "category": "Men",
-    "sub": "Pants",
-    "brand": "Adidas",
-    "name": "Tiro 24 Track Training Pants",
-    "price": 2400,
-    "desc": "Signature tapered athletic silhouette with ankle zips for quick on-and-off over boots. AEROREADY moisture management keeps you dry.",
-    "sizes": [
-      "S",
-      "M",
-      "L",
-      "XL"
-    ],
-    "colors": [
-      {
-        "name": "Black / White",
-        "hex": "#0a0a0a",
-        "img": "images/adidas-tiro-pants.png"
-      },
-      {
-        "name": "Team Navy",
-        "hex": "#1b2a4a",
-        "img": "images/adidas-tiro-pants.png"
-      }
-    ],
-    "variantStock": {
-      "Black / White::S": 5,
-      "Black / White::M": 10,
-      "Black / White::L": 12,
-      "Black / White::XL": 6,
-      "Team Navy::S": 4,
-      "Team Navy::M": 7,
-      "Team Navy::L": 9,
-      "Team Navy::XL": 5
-    }
-  },
-  "puma-essentials-fleece-hoodie": {
-    "category": "Men",
-    "sub": "Hoodies",
-    "brand": "Puma",
-    "name": "Essentials Big Logo Fleece Hoodie",
-    "price": 2750,
-    "desc": "Soft French terry fabric with bold PUMA No. 1 chest logo. Tailored for warmup track sessions and casual everyday recovery.",
-    "sizes": [
-      "S",
-      "M",
-      "L",
-      "XL"
-    ],
-    "colors": [
-      {
-        "name": "Puma Navy",
-        "hex": "#1a2332",
-        "img": "images/puma-fleece-hoodie.png"
-      },
-      {
-        "name": "Medium Grey",
-        "hex": "#6b7280",
-        "img": "images/puma-fleece-hoodie.png"
-      }
-    ],
-    "variantStock": {
-      "Puma Navy::S": 4,
-      "Puma Navy::M": 6,
-      "Puma Navy::L": 8,
-      "Puma Navy::XL": 5,
-      "Medium Grey::S": 3,
-      "Medium Grey::M": 5,
-      "Medium Grey::L": 7,
-      "Medium Grey::XL": 4
-    }
-  },
-  "nike-club-fleece-hoodie": {
-    "category": "Men",
-    "sub": "Hoodies",
-    "brand": "Nike",
-    "name": "Club Fleece Pullover Hoodie",
-    "price": 3200,
-    "desc": "A wardrobe staple, Club Fleece is brushed on the inside for added warmth and softness. Features a classic kangaroo pocket and ribbed hem.",
-    "sizes": [
-      "S",
-      "M",
-      "L",
-      "XL"
-    ],
-    "colors": [
-      {
-        "name": "Black",
-        "hex": "#111111",
-        "img": "images/nike-club-hoodie.png"
-      },
-      {
-        "name": "Heather Grey",
-        "hex": "#8a8a8a",
-        "img": "images/nike-club-hoodie.png"
-      }
-    ],
-    "variantStock": {
-      "Black::S": 4,
-      "Black::M": 7,
-      "Black::L": 9,
-      "Black::XL": 5,
-      "Heather Grey::S": 3,
-      "Heather Grey::M": 6,
-      "Heather Grey::L": 8,
-      "Heather Grey::XL": 4
-    }
-  },
-  "adidas-aeroready-tee": {
-    "category": "Men",
-    "sub": "Tops",
-    "brand": "Adidas",
-    "name": "Aeroready Designed for Movement Tee",
-    "price": 1450,
-    "desc": "Stay focused on your workout with moisture-absorbing AEROREADY tech and iconic 3-Stripes styling across the shoulders.",
-    "sizes": [
-      "S",
-      "M",
-      "L",
-      "XL"
-    ],
-    "colors": [
-      {
-        "name": "Lucid Cyan",
-        "hex": "#00c3e3",
-        "img": "images/adidas-aeroready-tee.png"
-      },
-      {
-        "name": "White",
-        "hex": "#f8f8f8",
-        "img": "images/adidas-aeroready-tee.png"
-      }
-    ],
-    "variantStock": {
-      "Lucid Cyan::S": 6,
-      "Lucid Cyan::M": 9,
-      "Lucid Cyan::L": 12,
-      "Lucid Cyan::XL": 7,
-      "White::S": 5,
-      "White::M": 8,
-      "White::L": 10,
-      "White::XL": 6
-    }
-  },
-  "nike-miler-running-top": {
-    "category": "Men",
-    "sub": "Tops",
-    "brand": "Nike",
-    "name": "Dri-FIT Miler Running Top",
-    "price": 1850,
-    "desc": "Ultralight, breathable Dri-FIT fabric with UVA/UVB protection and rolled-forward shoulder seams for unrestricted arm swing during long-distance miles.",
-    "sizes": [
-      "S",
-      "M",
-      "L",
-      "XL",
-      "XXL"
-    ],
-    "colors": [
-      {
-        "name": "Volt Glow",
-        "hex": "#c8ff00",
-        "img": "images/nike-miler-top.png"
-      },
-      {
-        "name": "Obsidian Black",
-        "hex": "#111111",
-        "img": "images/nike-miler-top.png"
-      }
-    ],
-    "variantStock": {
-      "Volt Glow::S": 5,
-      "Volt Glow::M": 8,
-      "Volt Glow::L": 10,
-      "Volt Glow::XL": 6,
-      "Volt Glow::XXL": 4,
-      "Obsidian Black::S": 4,
-      "Obsidian Black::M": 7,
-      "Obsidian Black::L": 9,
-      "Obsidian Black::XL": 5,
-      "Obsidian Black::XXL": 3
-    }
-  },
-  "nike-air-force-1": {
-    "category": "Men",
-    "sub": "Shoes",
-    "brand": "Nike",
-    "name": "Air Force 1 07",
-    "price": 5499,
-    "desc": "The legend lives on in the Nike Air Force 1 07. Hardwood court comfort meets street heritage with premium stitched leather and Nike Air cushioning.",
-    "sizes": [
-      "40",
-      "41",
-      "42",
-      "43",
-      "44",
-      "45"
-    ],
-    "colors": [
-      {
-        "name": "Triple White",
-        "hex": "#ffffff",
-        "img": "images/afc1-white.png"
-      },
-      {
-        "name": "Triple Black",
-        "hex": "#0a0a0a",
-        "img": "images/airforce1-triple-black.png"
-      }
-    ],
-    "variantStock": {
-      "Triple White::40": 8,
-      "Triple White::41": 12,
-      "Triple White::42": 15,
-      "Triple White::43": 10,
-      "Triple White::44": 6,
-      "Triple White::45": 4,
-      "Triple Black::40": 5,
-      "Triple Black::41": 9,
-      "Triple Black::42": 11,
-      "Triple Black::43": 8,
-      "Triple Black::44": 5,
-      "Triple Black::45": 3
-    }
-  },
-  "nike-pegasus-41": {
-    "category": "Men",
-    "sub": "Shoes",
-    "brand": "Nike",
-    "name": "Air Zoom Pegasus 41",
-    "price": 6800,
-    "desc": "Engineered with dual Air Zoom units and ReactX foam, the Pegasus 41 delivers an energized, responsive ride for everyday road running across Cairo.",
-    "sizes": [
-      "41",
-      "42",
-      "43",
-      "44",
-      "45"
-    ],
-    "colors": [
-      {
-        "name": "Volt / Black",
-        "hex": "#c8ff00",
-        "img": "images/hero-shoe.jpg"
-      },
-      {
-        "name": "Pure Platinum",
-        "hex": "#e5e5e5",
-        "img": "images/afc1-white.png"
-      }
-    ],
-    "variantStock": {
-      "Volt / Black::41": 6,
-      "Volt / Black::42": 8,
-      "Volt / Black::43": 10,
-      "Volt / Black::44": 7,
-      "Volt / Black::45": 5,
-      "Pure Platinum::41": 4,
-      "Pure Platinum::42": 6,
-      "Pure Platinum::43": 8,
-      "Pure Platinum::44": 5,
-      "Pure Platinum::45": 3
-    }
-  }
-};
+  };
 
   function normalizeProductStock(p) {
     if (!p.variantStock || typeof p.variantStock !== 'object') {
@@ -1108,8 +2047,8 @@
   function getProducts() {
     try {
       // Migrate to new 28-product catalog
-      if (localStorage.getItem('kynetixCatalogVersion') !== '3.2') {
-        localStorage.setItem('kynetixCatalogVersion', '3.2');
+      if (localStorage.getItem('kynetixCatalogVersion') !== '4.0') {
+        localStorage.setItem('kynetixCatalogVersion', '4.0');
         const initial = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
         saveProducts(initial);
         return initial;
@@ -1140,6 +2079,7 @@
         const productsObj = {};
         res.data.data.forEach((p) => {
           const key = p.slug || p.id;
+          const fallback = DEFAULT_PRODUCTS[key] || {};
           productsObj[key] = {
             id: key,
             slug: p.slug,
@@ -1149,11 +2089,18 @@
             sub: p.sub,
             desc: p.desc || p.description || '',
             price: Number(p.price),
+            // Sale / new flags come from the DB once kynetix_update_v4.sql is imported, otherwise from the built-in catalog
+            oldPrice: p.oldPrice != null ? Number(p.oldPrice) : (fallback.oldPrice || null),
+            isNew: p.isNew || !!fallback.isNew,
             sizes: p.sizes || [],
             colors: p.colors || [],
             variantStock: p.variantStock || {}
           };
           normalizeProductStock(productsObj[key]);
+        });
+        // Products added in v4 that are not in an older database yet still show up
+        Object.entries(DEFAULT_PRODUCTS).forEach(([key, p]) => {
+          if (!productsObj[key] && p.isNew) productsObj[key] = normalizeProductStock(JSON.parse(JSON.stringify(p)));
         });
         saveProducts(productsObj);
         window.dispatchEvent(new CustomEvent('kynetix:catalog-synced', { detail: productsObj }));
@@ -1701,6 +2648,43 @@
     }
   }
 
+  // ---------- Local accounts (used only when the Node/MySQL backend is not available) ----------
+  // Demo accounts from readme.txt, plus any account signed up in this browser.
+  const DEMO_ACCOUNTS = [
+    { email: 'ammar@kynetix.eg', name: 'Ammar', role: 'customer', password: 'kynetix' },
+    { email: 'ammar@kynetix', name: 'Ammar', role: 'customer', password: 'kynetix' },
+    { email: 'admin@kynetix.eg', name: 'Admin', role: 'admin', password: 'kynetix' }
+  ];
+
+  function getSavedAccounts() {
+    try {
+      const list = JSON.parse(localStorage.getItem('kynetixAccounts') || '[]');
+      return Array.isArray(list) ? list : [];
+    } catch (err) { return []; }
+  }
+
+  async function hashPassword(password) {
+    const text = 'kynetix:' + password;
+    if (window.crypto && window.crypto.subtle) {
+      const buf = await window.crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+      return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
+    }
+    // crypto.subtle is missing on plain-http LAN addresses; fall back to a simple hash
+    let h = 0;
+    for (let i = 0; i < text.length; i++) h = (Math.imul(31, h) + text.charCodeAt(i)) | 0;
+    return 'h' + (h >>> 0).toString(16);
+  }
+
+  async function findLocalAccount(email) {
+    const e = String(email || '').trim().toLowerCase();
+    return DEMO_ACCOUNTS.find((a) => a.email === e) || getSavedAccounts().find((a) => a.email === e) || null;
+  }
+
+  async function checkLocalPassword(account, password) {
+    if (account.password !== undefined) return account.password === password;
+    return account.hash === (await hashPassword(password));
+  }
+
   if ($('#loginForm')) {
     $('#loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -1708,12 +2692,16 @@
       const passEl = $('#loginPassword');
       const email = emailEl ? emailEl.value.trim() : '';
       const password = passEl ? passEl.value : '';
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      if (submitBtn && submitBtn.disabled) return;
+      setButtonLoading(submitBtn, true, 'Logging in...');
 
       // Call Node.js MVC backend API
       const res = await apiFetch('/auth/login', {
         method: 'POST',
         body: JSON.stringify({ email, password })
       });
+      setButtonLoading(submitBtn, false);
 
       let isAdmin = false;
       if (res.ok && res.data && res.data.success) {
@@ -1731,13 +2719,21 @@
         isAdmin = role === 'admin' || user.email.toLowerCase() === 'admin@kynetix.eg';
         showToast('Welcome back, ' + user.name + '!');
       } else if (res.networkError) {
-        // Fallback for offline/local-only mode
-        const role = email.toLowerCase() === 'admin@kynetix.eg' || email.toLowerCase().includes('admin') ? 'admin' : 'customer';
-        const user = { email, name: email.split('@')[0], role, loggedIn: true };
+        // No backend (e.g. Vercel): only demo accounts or accounts signed up in this browser can log in
+        const account = await findLocalAccount(email);
+        if (!account) {
+          showToast('No account found for this email. Please sign up first.');
+          return;
+        }
+        if (!(await checkLocalPassword(account, password))) {
+          showToast('Incorrect email or password');
+          return;
+        }
+        const user = { email: account.email, name: account.name, role: account.role, loggedIn: true };
         try { localStorage.setItem('kynetixUser', JSON.stringify(user)); } catch (err) {}
         closeAuth();
         updateAuthState();
-        isAdmin = role === 'admin';
+        isAdmin = account.role === 'admin';
         showToast('Welcome back, ' + user.name + '!');
       } else {
         showToast(res.error || 'Invalid email or password');
@@ -1759,12 +2755,16 @@
       const name = nameEl ? nameEl.value.trim() : 'Athlete';
       const email = emailEl ? emailEl.value.trim() : '';
       const password = passEl ? passEl.value : '123456';
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      if (submitBtn && submitBtn.disabled) return;
+      setButtonLoading(submitBtn, true, 'Creating account...');
 
       // Call Node.js MVC backend API
       const res = await apiFetch('/auth/register', {
         method: 'POST',
         body: JSON.stringify({ name, email, password })
       });
+      setButtonLoading(submitBtn, false);
 
       if (res.ok && res.data && res.data.success) {
         const role = res.data.user.role || 'customer';
@@ -1784,17 +2784,19 @@
           window.location.href = 'admin.html';
         }
       } else if (res.networkError) {
-        // Fallback for offline/local-only mode
-        const role = email.toLowerCase() === 'admin@kynetix.eg' || email.toLowerCase().includes('admin') ? 'admin' : 'customer';
-        const user = { email, name, role, loggedIn: true };
+        // No backend (e.g. Vercel): save the account in this browser. New accounts are always customers.
+        if (await findLocalAccount(email)) {
+          showToast('An account with this email already exists. Please log in.');
+          return;
+        }
+        const saved = getSavedAccounts();
+        saved.push({ email: email.toLowerCase(), name: name || 'Athlete', role: 'customer', hash: await hashPassword(password) });
+        try { localStorage.setItem('kynetixAccounts', JSON.stringify(saved)); } catch (err) {}
+        const user = { email: email.toLowerCase(), name: name || 'Athlete', role: 'customer', loggedIn: true };
         try { localStorage.setItem('kynetixUser', JSON.stringify(user)); } catch (err) {}
         closeAuth();
         updateAuthState();
-        showToast('Account created! Welcome, ' + name + '!');
-
-        if (role === 'admin' && !window.location.pathname.endsWith('admin.html')) {
-          window.location.href = 'admin.html';
-        }
+        showToast('Account created! Welcome, ' + user.name + '!');
       } else {
         showToast(res.error || 'Failed to create account');
       }
@@ -1809,6 +2811,70 @@
     });
   }
   updateAuthState();
+
+  // ---------- Shared product card (shop grid + home rails) ----------
+  function productCardHTML(p) {
+    const isSoldOut = getTotalProductStock(p) <= 0;
+    const sale = isOnSale(p);
+    let badge = '';
+    if (isSoldOut) badge = '<span class="p-card__badge p-card__badge--soldout">Sold Out</span>';
+    else if (sale) badge = `<span class="p-card__badge p-card__badge--sale">-${discountPercent(p)}%</span>`;
+    else if (p.isNew) badge = '<span class="p-card__badge p-card__badge--new">New</span>';
+    return `
+      <article class="p-card ${isSoldOut ? 'is-sold-out' : ''} ${sale ? 'is-on-sale' : ''}">
+        <a href="product.html?id=${p.id}" class="p-card__img-wrap">
+          <img src="${p.colors[0]?.img || ''}" alt="${p.name}" loading="lazy">
+          ${badge}
+          ${sale ? `
+          <div class="price-tag" aria-label="Sale price">
+            <span class="price-tag__now">${formatEGPPrefix(p.price)}</span>
+            <s class="price-tag__was">${formatEGPPrefix(p.oldPrice)}</s>
+          </div>` : ''}
+          <button class="p-card__wish-btn ${isWishlisted(p.id) ? 'is-active' : ''}" data-wish-id="${p.id}" aria-label="Save to wishlist">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+          </button>
+        </a>
+        <div class="p-card__body">
+          <span class="p-card__brand">${p.brand}</span>
+          <h3 class="p-card__title"><a href="product.html?id=${p.id}">${p.name}</a></h3>
+          ${sale ? '' : `<div class="p-card__foot"><span class="p-card__price">${formatEGP(p.price)}</span></div>`}
+          <span class="p-card__meta">${p.category || ''}${p.colors.length > 1 ? ` &middot; ${p.colors.length} colors` : ''}</span>
+        </div>
+      </article>
+    `;
+  }
+
+  // ---------- Home page rails: New Arrivals + Discounts ----------
+  function renderHomeRails() {
+    const newGrid = $('#newArrivalsGrid');
+    const saleGrid = $('#saleGrid');
+    if (!newGrid && !saleGrid) return;
+    const all = Object.entries(getProducts()).map(([id, p]) => ({ id, ...p }));
+    if (newGrid) {
+      // Round-robin across categories so the rail shows a mix, not one section
+      const byCat = {};
+      all.filter((p) => p.isNew).forEach((p) => { (byCat[p.category] = byCat[p.category] || []).push(p); });
+      const order = ['Kids', 'Men', 'Women', 'Kids', 'Accessories'];
+      const picks = [];
+      for (let i = 0; picks.length < 8 && i < 40; i++) {
+        const next = (byCat[order[i % order.length]] || []).shift();
+        if (next) picks.push(next);
+      }
+      newGrid.innerHTML = picks.map(productCardHTML).join('');
+    }
+    const saleMax = $('#saleMaxPercent');
+    if (saleMax) saleMax.textContent = Math.max(0, ...all.map(discountPercent));
+    if (saleGrid) {
+      saleGrid.innerHTML = all.filter(isOnSale)
+        .sort((a, b) => discountPercent(b) - discountPercent(a))
+        .slice(0, 8).map(productCardHTML).join('');
+    }
+    updateWishlistButtons();
+  }
+  renderHomeRails();
+  window.addEventListener('kynetix:catalog-synced', renderHomeRails);
 
   // ---------- Shop Catalog & Sidebar Filtering (shop.html) ----------
   if ($('#shopProductGrid')) {
@@ -1894,6 +2960,7 @@
       sizes: new Set(),
       maxPrice: 15000,
       search: (params.get('q') || '').toLowerCase(),
+      special: ['new', 'sale'].includes(params.get('filter')) ? params.get('filter') : '',
       sort: 'featured'
     };
 
@@ -1930,6 +2997,8 @@
 
     function updateHeading() {
       const parts = [];
+      if (state.special === 'new') parts.push('New Arrivals');
+      if (state.special === 'sale') parts.push('Discounts');
       if (state.categories.size) parts.push([...state.categories].join(', '));
       if (state.brands.size) parts.push([...state.brands].join(', '));
       if (state.subs.size) parts.push([...state.subs].map(subDisplayLabel).join(', '));
@@ -1942,6 +3011,8 @@
       updateHeading();
 
       let filtered = allProducts.filter((p) => {
+        if (state.special === 'new' && !p.isNew) return false;
+        if (state.special === 'sale' && !isOnSale(p)) return false;
         if (state.categories.size && !state.categories.has(p.category)) return false;
         if (state.subs.size && !state.subs.has(canonicalSub(p.sub))) return false;
         if (state.brands.size && !state.brands.has(p.brand)) return false;
@@ -1957,6 +3028,7 @@
       if (state.sort === 'price-asc') filtered.sort((a, b) => a.price - b.price);
       if (state.sort === 'price-desc') filtered.sort((a, b) => b.price - a.price);
       if (state.sort === 'name-asc') filtered.sort((a, b) => a.name.localeCompare(b.name));
+      if (state.sort === 'discount') filtered.sort((a, b) => discountPercent(b) - discountPercent(a));
 
       const resultCount = $('#shopResultCount');
       if (resultCount) resultCount.textContent = `${filtered.length} ${filtered.length === 1 ? 'item' : 'items'}`;
@@ -1973,35 +3045,7 @@
         return;
       }
 
-      grid.innerHTML = filtered.map((p) => {
-        const totalStock = getTotalProductStock(p);
-        const isSoldOut = totalStock <= 0;
-        return `
-        <article class="p-card ${isSoldOut ? 'is-sold-out' : ''}">
-          <a href="product.html?id=${p.id}" class="p-card__img-wrap">
-            <img src="${p.colors[0]?.img || ''}" alt="${p.name}" loading="lazy">
-            ${p.category ? `<span class="p-card__badge">${p.category}</span>` : ''}
-            ${isSoldOut ? `<span class="p-card__badge p-card__badge--soldout">Sold Out</span>` : ''}
-            <button class="p-card__wish-btn ${isWishlisted(p.id) ? 'is-active' : ''}" data-wish-id="${p.id}" aria-label="Save to wishlist">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-              </svg>
-            </button>
-          </a>
-          <div class="p-card__body">
-            <span class="p-card__brand">${p.brand}</span>
-            <h3 class="p-card__title"><a href="product.html?id=${p.id}">${p.name}</a></h3>
-            <div class="p-card__swatches">
-              ${p.colors.map((c) => `<span class="p-card__dot" style="background:${c.hex};" title="${c.name}"></span>`).join('')}
-            </div>
-            <div class="p-card__foot">
-              <span class="p-card__price">${formatEGP(p.price)}</span>
-              <a href="product.html?id=${p.id}" class="btn-small">${isSoldOut ? 'Sold Out' : 'Select Options'}</a>
-            </div>
-          </div>
-        </article>
-      `;
-      }).join('');
+      grid.innerHTML = filtered.map(productCardHTML).join('');
 
       // Re-sync wishlist button states after re-render
       updateWishlistButtons();
@@ -2054,6 +3098,7 @@
       state.sizes.clear();
       state.maxPrice = 15000;
       state.search = '';
+      state.special = '';
       if ($('#searchInput')) $('#searchInput').value = '';
       if (filterMaxPrice) filterMaxPrice.value = 15000;
       const label = $('#maxPriceLabel');
@@ -2099,7 +3144,13 @@
     document.title = `${product.name} | Kynetix Collective`;
     if ($('#prodBrand')) $('#prodBrand').textContent = `${product.brand}${product.category ? ' \u2022 ' + product.category : ''}`;
     if ($('#prodTitle')) $('#prodTitle').textContent = product.name;
-    if ($('#prodPrice')) $('#prodPrice').textContent = formatEGP(product.price);
+    if ($('#prodPrice')) {
+      $('#prodPrice').innerHTML = isOnSale(product)
+        ? `<span class="prod-price--sale">${formatEGP(product.price)}</span>
+           <s class="prod-price--was">${formatEGP(product.oldPrice)}</s>
+           <span class="prod-price--off">-${discountPercent(product)}%</span>`
+        : formatEGP(product.price);
+    }
     if ($('#prodDesc')) $('#prodDesc').textContent = product.desc;
 
     const stockStatusEl = $('#prodStockStatus');
@@ -2588,7 +3639,7 @@
       const originalText = saveBtn ? saveBtn.textContent : '';
       if (saveBtn) {
         saveBtn.disabled = true;
-        saveBtn.textContent = 'Saving to database...';
+        saveBtn.textContent = 'Saving...';
       }
 
       const products = getProducts();
@@ -2639,12 +3690,37 @@
         saveBtn.textContent = originalText || 'Save Product';
       }
 
+      if (apiRes.networkError) {
+        // No backend (e.g. Vercel): save the product in this browser's catalog instead
+        if (!newId) { showToast('Please enter a product ID'); return; }
+        if (newId !== originalId && products[newId]) { showToast(`A product with ID "${newId}" already exists`); return; }
+        const previous = originalId ? (products[originalId] || {}) : {};
+        if (originalId && originalId !== newId) delete products[originalId];
+        products[newId] = {
+          ...previous,
+          id: newId,
+          slug: newId,
+          name: productPayload.name,
+          brand: productPayload.brand,
+          category: productPayload.category,
+          sub: productPayload.sub,
+          desc: productPayload.desc,
+          price: productPayload.price,
+          // keep sale/new flags when editing; products the admin adds show up in New Arrivals
+          isNew: originalId ? !!previous.isNew : true,
+          sizes,
+          colors,
+          variantStock
+        };
+        saveProducts(products);
+        renderAdminList();
+        resetAdminForm();
+        showToast(originalId ? 'Product updated!' : 'Product added!');
+        return;
+      }
+
       if (!apiRes.ok || !apiRes.data || !apiRes.data.data) {
-        if (apiRes.networkError) {
-          showToast('Backend server is offline! Please run start-server.bat');
-        } else {
-          showToast(apiRes.error || 'Could not save this product to the database');
-        }
+        showToast(apiRes.error || 'Could not save this product to the database');
         return;
       }
 
@@ -2705,16 +3781,17 @@
         if (deleteId) {
           if (!confirm(`Delete "${deleteId}"?`)) return;
           const apiRes = await apiFetch(`/products/${encodeURIComponent(deleteId)}`, { method: 'DELETE' });
-          if (!apiRes.ok) {
+          if (!apiRes.ok && !apiRes.networkError) {
             showToast(apiRes.error || 'Could not delete this product from the database');
             return;
           }
 
+          // With no backend (e.g. Vercel) the product is removed from this browser's catalog only
           const products = getProducts();
           delete products[deleteId];
           saveProducts(products);
           renderAdminList();
-          showToast(`"${deleteId}" removed from database`);
+          showToast(apiRes.networkError ? `"${deleteId}" deleted` : `"${deleteId}" removed from database`);
         }
       });
     }

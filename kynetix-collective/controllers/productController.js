@@ -17,6 +17,7 @@ const getProducts = async (req, res, next) => {
       maxPrice
     });
 
+    console.log(`[Products API] Catalog fetch successfully done | Returned ${products.length} active products`);
     res.json({
       success: true,
       count: products.length,

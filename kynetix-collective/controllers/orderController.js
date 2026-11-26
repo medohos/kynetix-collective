@@ -119,6 +119,7 @@ const trackOrder = async (req, res, next) => {
       });
     }
 
+    console.log(`[Order API] Order Tracking successfully done | Order: ${order.orderNumber} | Status: ${order.orderStatus} | Courier: ${order.shipping.courierName}`);
     res.json({
       success: true,
       data: order

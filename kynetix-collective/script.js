@@ -402,6 +402,7 @@
     }
     saveBag();
     renderBag();
+    console.log('Add to Bag successfully done | Item: ' + item.name + ' | Price: ' + item.price + ' EGP | Variant Stock: ' + maxStock + ' | Bag Qty: ' + bag.reduce((n, i) => n + i.qty, 0));
     showToast(item.name + ' added to bag');
   };
 
@@ -839,6 +840,7 @@
         closeAuth();
         updateAuthState();
         isAdmin = role === 'admin' || user.email.toLowerCase() === 'admin@kynetix.eg';
+        console.log('Login successfully done | User: ' + user.name + ' (' + user.email + ') | Role: ' + user.role);
         showToast('Welcome back, ' + user.name + '!');
       } else if (res.networkError) {
         // No backend (e.g. Vercel): only demo accounts or accounts signed up in this browser can log in
@@ -1160,6 +1162,7 @@
 
       const resultCount = $('#shopResultCount');
       if (resultCount) resultCount.textContent = `${filtered.length} ${filtered.length === 1 ? 'item' : 'items'}`;
+      console.log('Shop Filter successfully done | Matched: ' + filtered.length + ' of ' + allProducts.length + ' products | Sort: ' + state.sort);
 
       const grid = $('#shopProductGrid');
       if (!filtered.length) {
@@ -2193,6 +2196,7 @@
           if (promoAppliedTag) promoAppliedTag.hidden = false;
           promoInput.value = '';
           renderCheckoutSummary();
+          console.log('Promo Code successfully done | Code: ' + matched.code + ' (' + matched.label + ') | Discount: ' + calculateCheckoutTotals().discountAmount + ' EGP | Total: ' + calculateCheckoutTotals().total + ' EGP');
           showToast(`Coupon ${matched.code} applied!`);
         } else {
           if (promoMessage) { promoMessage.textContent = apiRes.error || 'Invalid promo code. Try "KYNETIX10" for 10% off.'; promoMessage.className = 'promo-feedback is-error'; }
@@ -2587,6 +2591,7 @@
 
       if (notFound) notFound.hidden = true;
       if (resultWrap) resultWrap.hidden = false;
+      console.log('Order Tracking successfully done | Order: ' + (order.orderId || order.orderNumber) + ' | Status: ' + order.orderStatus + ' | Courier: ' + (order.shipping && order.shipping.courierName ? order.shipping.courierName : 'Standard'));
 
       if ($('#resOrderNumber')) $('#resOrderNumber').textContent = order.orderId || order.orderNumber;
       if ($('#resStatusBadge')) {

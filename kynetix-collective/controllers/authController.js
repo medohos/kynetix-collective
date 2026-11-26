@@ -85,6 +85,7 @@ const login = async (req, res, next) => {
     }
 
     const token = generateToken(user.id);
+    console.log(`[Auth API] Login successfully done | User #${user.id} (${user.email}, role: ${user.role})`);
 
     res.json({
       success: true,

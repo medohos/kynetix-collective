@@ -29,6 +29,7 @@ const validateCoupon = async (req, res, next) => {
     }
 
     const result = Coupon.calculateDiscount(coupon, sub);
+    console.log(`[Coupon API] Promo Code validation successfully done | Code: ${coupon.code} | Subtotal: ${sub} EGP | Discount: ${result.discountAmount} EGP`);
 
     res.json({
       success: true,
